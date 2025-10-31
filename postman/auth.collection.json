@@ -1,0 +1,467 @@
+{
+	"info": {
+		"_postman_id": "shrtnr-auth-collection",
+		"name": "Shrtnr - Authentication API",
+		"description": "Collection complète pour tester l'API d'authentification de Shrtnr",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "1. Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Sauvegarder les tokens si la requête réussit",
+									"if (pm.response.code === 200 || pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set(\"access_token\", response.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.refresh_token);",
+									"    pm.collectionVariables.set(\"user_id\", response.user.id);",
+									"    pm.collectionVariables.set(\"user_email\", response.user.email);",
+									"    console.log(\"✅ Tokens sauvegardés:\");",
+									"    console.log(\"   User ID:\", response.user.id);",
+									"    console.log(\"   Email:\", response.user.email);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\",\n  \"name\": \"Test User\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Créer un nouveau compte utilisateur.\n\n**Body:**\n- email (string, required): Email de l'utilisateur\n- password (string, required): Mot de passe\n- name (string, optional): Nom de l'utilisateur\n\n**Responses:**\n- 200/201: Utilisateur créé avec succès, retourne user + tokens\n- 409: Email déjà utilisé\n- 500: Erreur serveur"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Sauvegarder les tokens si la requête réussit",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set(\"access_token\", response.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.refresh_token);",
+									"    pm.collectionVariables.set(\"user_id\", response.user.id);",
+									"    pm.collectionVariables.set(\"user_email\", response.user.email);",
+									"    console.log(\"✅ Connexion réussie:\");",
+									"    console.log(\"   User ID:\", response.user.id);",
+									"    console.log(\"   Email:\", response.user.email);",
+									"    console.log(\"   Access Token:\", response.access_token.substring(0, 20) + \"...\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"{{test_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Se connecter avec un compte existant.\n\n**Body:**\n- email (string, required): Email de l'utilisateur\n- password (string, required): Mot de passe\n\n**Responses:**\n- 200: Connexion réussie, retourne user + tokens\n- 401: Identifiants invalides\n- 500: Erreur serveur"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Current User (Me)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Vérifier que l'utilisateur correspond",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    const savedUserId = pm.collectionVariables.get(\"user_id\");",
+									"    console.log(\"✅ Profil récupéré:\");",
+									"    console.log(\"   ID:\", response.id);",
+									"    console.log(\"   Email:\", response.email);",
+									"    console.log(\"   Name:\", response.name);",
+									"    ",
+									"    if (response.id === savedUserId) {",
+									"        console.log(\"✅ L'ID correspond au token\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Obtenir les informations de l'utilisateur connecté.\n\n**Headers:**\n- Authorization: Bearer <access_token> (required)\n\n**Responses:**\n- 200: Informations de l'utilisateur\n- 401: Token manquant, invalide ou expiré\n- 404: Utilisateur non trouvé"
+					},
+					"response": []
+				},
+				{
+					"name": "4. Update Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Vérifier la mise à jour",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    console.log(\"✅ Profil mis à jour:\");",
+									"    console.log(\"   ID:\", response.id);",
+									"    console.log(\"   Email:\", response.email);",
+									"    console.log(\"   Name:\", response.name);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Name\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"profile"
+							]
+						},
+						"description": "Mettre à jour le profil de l'utilisateur connecté.\n\n**Headers:**\n- Authorization: Bearer <access_token> (required)\n\n**Body:**\n- name (string, optional): Nouveau nom\n- email (string, optional): Nouvel email\n\n**Responses:**\n- 200: Profil mis à jour\n- 401: Token manquant, invalide ou expiré\n- 409: Email déjà utilisé par un autre compte"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Sauvegarder les nouveaux tokens",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set(\"access_token\", response.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.refresh_token);",
+									"    console.log(\"✅ Tokens rafraîchis:\");",
+									"    console.log(\"   New Access Token:\", response.access_token.substring(0, 20) + \"...\");",
+									"    console.log(\"   New Refresh Token:\", response.refresh_token.substring(0, 20) + \"...\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/refresh-token",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh-token"
+							]
+						},
+						"description": "Obtenir un nouveau access_token avec un refresh_token valide.\n\n**Body:**\n- refresh_token (string, required): Le refresh token obtenu lors du login\n\n**Responses:**\n- 200: Nouveaux tokens générés\n- 401: Refresh token invalide ou expiré"
+					},
+					"response": []
+				},
+				{
+					"name": "6. Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						},
+						"description": "Déconnecter l'utilisateur.\n\nNote: Dans une implémentation JWT stateless, la déconnexion est principalement gérée côté client en supprimant les tokens.\n\n**Responses:**\n- 200: Message de confirmation"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints d'authentification pour Shrtnr"
+		},
+		{
+			"name": "Tests",
+			"item": [
+				{
+					"name": "Test - Invalid Token",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "invalid_token_here",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Test avec un token invalide - devrait retourner 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Test - Missing Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"me"
+							]
+						},
+						"description": "Test sans token - devrait retourner 401"
+					},
+					"response": []
+				},
+				{
+					"name": "Test - Duplicate Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"different_password\",\n  \"name\": \"Another User\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"register"
+							]
+						},
+						"description": "Test d'inscription avec un email déjà existant - devrait retourner 409"
+					},
+					"response": []
+				},
+				{
+					"name": "Test - Wrong Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{test_email}}\",\n  \"password\": \"wrong_password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Test de connexion avec un mauvais mot de passe - devrait retourner 401"
+					},
+					"response": []
+				}
+			],
+			"description": "Tests des cas d'erreur et edge cases"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "test_email",
+			"value": "test@example.com",
+			"type": "string"
+		},
+		{
+			"key": "test_password",
+			"value": "Test123!@#",
+			"type": "string"
+		},
+		{
+			"key": "access_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "user_email",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+

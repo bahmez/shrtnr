@@ -1,0 +1,22 @@
+# Fichiers générés par Postman
+*.postman_collection.json.backup
+*.postman_environment.json.backup
+
+# Fichiers de test locaux et rapports Newman
+test-results/
+newman/
+*.html
+*.json
+!auth.collection.json
+!environments/*.json
+
+# Variables d'environnement avec tokens sensibles
+environments/local.postman_environment.json
+environments/personal.postman_environment.json
+
+# Fichiers temporaires
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+
