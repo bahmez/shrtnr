@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+target/
+debug/
+Cargo.lock
+
+# Environment files
+.env
+.env.local
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Documentation
+*.md
+LICENSE
+
+# Postman
+postman/
+
+# Node modules (if any)
+node_modules/

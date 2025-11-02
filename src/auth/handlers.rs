@@ -1,5 +1,5 @@
 use axum::{
-    extract::State,
+    extract::Extension,
     http::StatusCode,
     Json,
 };
@@ -67,7 +67,7 @@ pub struct ErrorResponse {
 // ===== Handlers =====
 
 pub async fn register_handler(
-    State(state): State<AppState>,
+    Extension(state): Extension<AppState>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<Json<AuthResponse>, (StatusCode, Json<ErrorResponse>)> {
     // Vérifier si l'email existe déjà
@@ -125,7 +125,7 @@ pub async fn register_handler(
 }
 
 pub async fn login_handler(
-    State(state): State<AppState>,
+    Extension(state): Extension<AppState>,
     Json(payload): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>, (StatusCode, Json<ErrorResponse>)> {
     // Trouver l'utilisateur par email
@@ -199,7 +199,7 @@ pub async fn logout_handler() -> Json<MessageResponse> {
 }
 
 pub async fn refresh_token_handler(
-    State(state): State<AppState>,
+    Extension(state): Extension<AppState>,
     Json(payload): Json<RefreshTokenRequest>,
 ) -> Result<Json<AuthResponse>, (StatusCode, Json<ErrorResponse>)> {
     // Vérifier le refresh token
@@ -264,9 +264,9 @@ pub async fn refresh_token_handler(
 }
 
 pub async fn me_handler(
-    State(state): State<AppState>,
     auth_user: AuthUser,
 ) -> Result<Json<UserResponse>, (StatusCode, Json<ErrorResponse>)> {
+    let state = &auth_user.state;
     let user = UserRepository::find_by_id(&state.db, auth_user.user_id)
         .await
         .map_err(|e| {
@@ -295,10 +295,10 @@ pub async fn me_handler(
 }
 
 pub async fn update_profile_handler(
-    State(state): State<AppState>,
     auth_user: AuthUser,
     Json(payload): Json<UpdateProfileRequest>,
 ) -> Result<Json<UserResponse>, (StatusCode, Json<ErrorResponse>)> {
+    let state = &auth_user.state;
     // Si l'email est fourni, vérifier qu'il n'est pas déjà utilisé
     if let Some(ref email) = payload.email {
         if let Ok(Some(existing_user)) = UserRepository::find_by_email(&state.db, email).await {

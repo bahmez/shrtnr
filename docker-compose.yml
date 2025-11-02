@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: shrtnr_db
+    environment:
+      POSTGRES_USER: shrtnr
+      POSTGRES_PASSWORD: shrtnr_password
+      POSTGRES_DB: shrtnr
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shrtnr"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shrtnr_app
+    environment:
+      DATABASE_URL: postgresql://shrtnr:shrtnr_password@db:5432/shrtnr
+      JWT_SECRET: ${JWT_SECRET:-change-this-secret-in-production-use-a-long-random-string}
+      LEPTOS_SITE_ADDR: 0.0.0.0:3000
+      LEPTOS_SITE_ROOT: site
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./migrations:/app/migrations
+    command: >
+      sh -c "
+        echo 'Waiting for database...' &&
+        sleep 2 &&
+        echo 'Running migrations...' &&
+        psql postgresql://shrtnr:shrtnr_password@db:5432/shrtnr -f /app/migrations/001_create_tables.sql &&
+        echo 'Starting application...' &&
+        /app/shrtnr
+      "
+
+volumes:
+  postgres_data:

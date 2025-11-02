@@ -15,9 +15,11 @@ use crate::{auth::verify_access_token, config::AppState};
 
 /// Structure représentant un utilisateur authentifié
 /// Cette structure peut être utilisée comme extracteur dans les handlers
+/// It also carries the AppState to avoid double extraction conflicts
 #[derive(Debug, Clone)]
 pub struct AuthUser {
     pub user_id: Uuid,
+    pub state: AppState,
 }
 
 #[derive(Debug, Serialize)]
@@ -67,6 +69,9 @@ where
             error: "Invalid user ID in token".to_string(),
         })?;
 
-        Ok(AuthUser { user_id })
+        Ok(AuthUser {
+            user_id,
+            state: app_state,
+        })
     }
 }

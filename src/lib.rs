@@ -11,6 +11,8 @@ pub mod auth;
 pub mod middleware;
 #[cfg(feature = "ssr")]
 pub mod config;
+#[cfg(feature = "ssr")]
+pub mod links;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
