@@ -38,26 +38,67 @@ echo ""
 echo "🏃 Lancement de Newman..."
 echo ""
 
-# Exécuter Newman avec la collection
-newman run postman/auth.collection.json \
-    --environment postman/environments/development.postman_environment.json \
-    --reporters cli,html,json \
-    --reporter-html-export "$OUTPUT_DIR/report_${TIMESTAMP}.html" \
-    --reporter-json-export "$OUTPUT_DIR/report_${TIMESTAMP}.json" \
-    --color on \
-    --delay-request 100 \
-    --timeout-request 5000
+# 1) Auth: export d'environnement pour chaîner les suites
+AUTH_HTML="$OUTPUT_DIR/auth_${TIMESTAMP}.html"
+AUTH_JSON="$OUTPUT_DIR/auth_${TIMESTAMP}.json"
+RUNTIME_ENV="$OUTPUT_DIR/dev.runtime.${TIMESTAMP}.json"
 
-# Vérifier le code de sortie
-EXIT_CODE=$?
+newman run postman/auth.collection.json \
+  --environment postman/environments/development.postman_environment.json \
+  --export-environment "$RUNTIME_ENV" \
+  --reporters cli,html,json \
+  --reporter-html-export "$AUTH_HTML" \
+  --reporter-json-export "$AUTH_JSON" \
+  --color on \
+  --delay-request 100 \
+  --timeout-request 5000
+
+AUTH_CODE=$?
+
+# 2) Workspaces (réutilise l'env runtime avec tokens/ids)
+WS_HTML="$OUTPUT_DIR/workspaces_${TIMESTAMP}.html"
+WS_JSON="$OUTPUT_DIR/workspaces_${TIMESTAMP}.json"
+
+newman run postman/workspaces.collection.json \
+  --environment "$RUNTIME_ENV" \
+  --export-environment "$RUNTIME_ENV" \
+  --reporters cli,html,json \
+  --reporter-html-export "$WS_HTML" \
+  --reporter-json-export "$WS_JSON" \
+  --color on \
+  --delay-request 100 \
+  --timeout-request 5000
+
+WS_CODE=$?
+
+# 3) Stats
+STATS_HTML="$OUTPUT_DIR/stats_${TIMESTAMP}.html"
+STATS_JSON="$OUTPUT_DIR/stats_${TIMESTAMP}.json"
+
+newman run postman/stats.collection.json \
+  --environment "$RUNTIME_ENV" \
+  --reporters cli,html,json \
+  --reporter-html-export "$STATS_HTML" \
+  --reporter-json-export "$STATS_JSON" \
+  --color on \
+  --delay-request 100 \
+  --timeout-request 5000
+
+STATS_CODE=$?
+
+echo ""
+echo "📦 Résumés rapports:"
+echo "- Auth: $AUTH_HTML (code=$AUTH_CODE)"
+echo "- Workspaces: $WS_HTML (code=$WS_CODE)"
+echo "- Stats: $STATS_HTML (code=$STATS_CODE)"
+
+EXIT_CODE=$(( AUTH_CODE | WS_CODE | STATS_CODE ))
 
 echo ""
 if [ $EXIT_CODE -eq 0 ]; then
-    echo "✅ Tous les tests sont passés!"
-    echo "📊 Rapport HTML: $OUTPUT_DIR/report_${TIMESTAMP}.html"
+  echo "✅ Tous les tests sont passés!"
 else
-    echo "❌ Certains tests ont échoué (code: $EXIT_CODE)"
-    echo "📊 Consultez le rapport pour plus de détails: $OUTPUT_DIR/report_${TIMESTAMP}.html"
+  echo "❌ Certains tests ont échoué (code combiné: $EXIT_CODE)"
 fi
 
 echo ""

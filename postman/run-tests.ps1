@@ -39,42 +39,62 @@ Write-Host ""
 Write-Host "🏃 Lancement de Newman..." -ForegroundColor Cyan
 Write-Host ""
 
-# Exécuter Newman avec la collection
-$htmlReport = "$OUTPUT_DIR\report_${TIMESTAMP}.html"
-$jsonReport = "$OUTPUT_DIR\report_${TIMESTAMP}.json"
+# 1) Auth avec export d'environnement pour chaîner
+$authHtml = "$OUTPUT_DIR\auth_${TIMESTAMP}.html"
+$authJson = "$OUTPUT_DIR\auth_${TIMESTAMP}.json"
+$runtimeEnv = "$OUTPUT_DIR\dev.runtime.${TIMESTAMP}.json"
 
 newman run postman\auth.collection.json `
-    --environment postman\environments\development.postman_environment.json `
-    --reporters cli,html,json `
-    --reporter-html-export $htmlReport `
-    --reporter-json-export $jsonReport `
-    --color on `
-    --delay-request 100 `
-    --timeout-request 5000
+  --environment postman\environments\development.postman_environment.json `
+  --export-environment $runtimeEnv `
+  --reporters cli,html,json `
+  --reporter-html-export $authHtml `
+  --reporter-json-export $authJson `
+  --color on `
+  --delay-request 100 `
+  --timeout-request 5000
 
-# Vérifier le code de sortie
-$EXIT_CODE = $LASTEXITCODE
+$authCode = $LASTEXITCODE
 
-Write-Host ""
-if ($EXIT_CODE -eq 0) {
-    Write-Host "✅ Tous les tests sont passés!" -ForegroundColor Green
-    Write-Host "📊 Rapport HTML: $htmlReport" -ForegroundColor Cyan
-} else {
-    Write-Host "❌ Certains tests ont échoué (code: $EXIT_CODE)" -ForegroundColor Red
-    Write-Host "📊 Consultez le rapport pour plus de détails: $htmlReport" -ForegroundColor Yellow
-}
+# 2) Workspaces
+$wsHtml = "$OUTPUT_DIR\workspaces_${TIMESTAMP}.html"
+$wsJson = "$OUTPUT_DIR\workspaces_${TIMESTAMP}.json"
 
-Write-Host ""
-Write-Host "📁 Fichiers générés:" -ForegroundColor Cyan
+newman run postman\workspaces.collection.json `
+  --environment $runtimeEnv `
+  --reporters cli,html,json `
+  --reporter-html-export $wsHtml `
+  --reporter-json-export $wsJson `
+  --color on `
+  --delay-request 100 `
+  --timeout-request 5000
+
+$wsCode = $LASTEXITCODE
+
+# 3) Stats
+$statsHtml = "$OUTPUT_DIR\stats_${TIMESTAMP}.html"
+$statsJson = "$OUTPUT_DIR\stats_${TIMESTAMP}.json"
+
+newman run postman\stats.collection.json `
+  --environment $runtimeEnv `
+  --reporters cli,html,json `
+  --reporter-html-export $statsHtml `
+  --reporter-json-export $statsJson `
+  --color on `
+  --delay-request 100 `
+  --timeout-request 5000
+
+$statsCode = $LASTEXITCODE
+
+$exitCode = ($authCode -bor $wsCode -bor $statsCode)
+
+Write-Host ""; Write-Host "📦 Résumés rapports:" -ForegroundColor Cyan
+Write-Host ("- Auth: {0} (code={1})" -f $authHtml, $authCode)
+Write-Host ("- Workspaces: {0} (code={1})" -f $wsHtml, $wsCode)
+Write-Host ("- Stats: {0} (code={1})" -f $statsHtml, $statsCode)
+
+Write-Host ""; Write-Host "📁 Fichiers générés:" -ForegroundColor Cyan
 Get-ChildItem -Path $OUTPUT_DIR | Where-Object { $_.Name -like "*${TIMESTAMP}*" } | Format-Table Name, Length, LastWriteTime -AutoSize
 
-# Ouvrir le rapport HTML dans le navigateur par défaut
-if ($EXIT_CODE -eq 0) {
-    $open = Read-Host "Voulez-vous ouvrir le rapport HTML ? (y/n)"
-    if ($open -eq "y" -or $open -eq "Y") {
-        Start-Process $htmlReport
-    }
-}
-
-exit $EXIT_CODE
+exit $exitCode
 

@@ -1,0 +1,131 @@
+{
+  "info": {
+    "name": "shrtnr - Workspaces",
+    "_postman_id": "shrtnr-workspaces",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create Workspace",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "url": { "raw": "{{base_url}}/api/workspaces", "host": ["{{base_url}}"], "path": ["api","workspaces"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Mon WS de test\",\n  \"owner_id\": \"{{user_id}}\"\n}" }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('201|200', function(){ pm.expect(pm.response.code).to.be.oneOf([200,201]); });",
+          "let json = pm.response.json();",
+          "pm.expect(json).to.have.property('id');",
+          "pm.environment.set('workspaceId', json.id);"
+        ] }
+      }]
+    },
+    {
+      "name": "List Workspaces (by owner)",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}", "type": "text" } ],
+        "url": { "raw": "{{base_url}}/api/workspaces?owner_id={{user_id}}", "host": ["{{base_url}}"], "path": ["api","workspaces"], "query": [ { "key": "owner_id", "value": "{{user_id}}" } ] }
+      },
+      "event": [{
+        "listen": "test",
+        "script": { "type": "text/javascript", "exec": [
+          "pm.test('200', ()=> pm.response.to.have.status(200));",
+          "let json = pm.response.json();",
+          "pm.expect(json).to.have.property('workspaces');",
+          "if (json.workspaces.length>0) pm.environment.set('workspaceId', json.workspaces[0].id);"
+        ] }
+      }]
+    },
+    {
+      "name": "Get Workspace by ID",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/workspaces/{{workspaceId}}", "host": ["{{base_url}}"], "path": ["api","workspaces","{{workspaceId}}"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200', ()=> pm.response.to.have.status(200));",
+        "pm.expect(pm.response.json()).to.have.property('workspace');"
+      ] } }]
+    },
+    {
+      "name": "Update Workspace name",
+      "request": {
+        "method": "PUT",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+        "url": { "raw": "{{base_url}}/api/workspaces/{{workspaceId}}", "host": ["{{base_url}}"], "path": ["api","workspaces","{{workspaceId}}"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Nom mis à jour\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200', ()=> pm.response.to.have.status(200));",
+        "let json = pm.response.json();",
+        "pm.expect(json).to.have.property('workspace');",
+        "pm.expect(json.workspace.name).to.eql('Nom mis à jour');"
+      ] } }]
+    },
+    {
+      "name": "Add Member (Admin)",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" }, { "key": "Content-Type", "value": "application/json" } ],
+        "url": { "raw": "{{base_url}}/api/workspaces/{{workspaceId}}/members", "host": ["{{base_url}}"], "path": ["api","workspaces","{{workspaceId}}","members"] },
+        "body": { "mode": "raw", "raw": "{\n  \"user_id\": \"{{memberUserId}}\",\n  \"role\": \"Admin\"\n}" }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const memberId = pm.environment.get('memberUserId');",
+        "if (memberId && memberId.length > 0) {",
+        "  pm.test('200|201 when memberUserId provided', ()=> pm.expect(pm.response.code).to.be.oneOf([200,201]));",
+        "  let json = pm.response.json();",
+        "  pm.expect(json).to.have.property('member');",
+        "  pm.expect(json.member.role).to.eql('Admin');",
+        "} else {",
+        "  pm.test('Allow 400/422 when memberUserId missing', ()=> pm.expect(pm.response.code).to.be.oneOf([400,422]));",
+        "}"
+      ] } }]
+    },
+    {
+      "name": "Remove Member",
+      "request": {
+        "method": "DELETE",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/workspaces/{{workspaceId}}/members/{{memberUserId}}", "host": ["{{base_url}}"], "path": ["api","workspaces","{{workspaceId}}","members","{{memberUserId}}"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const memberId = pm.environment.get('memberUserId');",
+        "if (memberId && memberId.length > 0) {",
+        "  pm.test('200|204 when memberUserId provided', ()=> pm.expect(pm.response.code).to.be.oneOf([200,204]));",
+        "} else {",
+        "  pm.test('Allow 404 when memberUserId missing', ()=> pm.expect(pm.response.code).to.be.oneOf([404]));",
+        "}"
+      ] } }]
+    },
+    {
+      "name": "Delete Workspace (désactivé pour chaînage)",
+      "disabled": true,
+      "request": {
+        "method": "DELETE",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/workspaces/{{workspaceId}}", "host": ["{{base_url}}"], "path": ["api","workspaces","{{workspaceId}}"] }
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200|204', ()=> pm.expect(pm.response.code).to.be.oneOf([200,204]));"
+      ] } }]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:3000" },
+    { "key": "access_token", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "workspaceId", "value": "" },
+    { "key": "memberUserId", "value": "" }
+  ]
+}
+
+

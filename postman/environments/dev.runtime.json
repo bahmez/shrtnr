@@ -1,0 +1,62 @@
+{
+  "_": {
+    "postman_variable_scope": "environment"
+  },
+  "id": "shrtnr-dev-environment",
+  "name": "Shrtnr - Development",
+  "values": [
+    {
+      "type": "any",
+      "value": "http://localhost:3000",
+      "key": "base_url"
+    },
+    {
+      "type": "any",
+      "value": "dev@example.com",
+      "key": "test_email"
+    },
+    {
+      "type": "any",
+      "value": "DevPassword123!",
+      "key": "test_password"
+    },
+    {
+      "type": "any",
+      "value": "",
+      "key": "access_token"
+    },
+    {
+      "type": "any",
+      "value": "",
+      "key": "refresh_token"
+    },
+    {
+      "type": "any",
+      "value": "",
+      "key": "user_id"
+    },
+    {
+      "type": "any",
+      "value": "",
+      "key": "user_email"
+    },
+    {
+      "type": "any",
+      "value": "http://127.0.0.1:3000",
+      "key": "baseUrl"
+    },
+    {
+      "type": "any",
+      "value": "{{access_token}}",
+      "key": "authToken"
+    },
+    {
+      "type": "any",
+      "value": "{{user_id}}",
+      "key": "userId"
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2025-11-03T15:51:22.839Z",
+  "_postman_exported_using": "Newman/6.2.1"
+}

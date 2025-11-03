@@ -13,6 +13,10 @@ pub mod middleware;
 pub mod config;
 #[cfg(feature = "ssr")]
 pub mod links;
+#[cfg(feature = "ssr")]
+pub mod workspaces;
+#[cfg(feature = "ssr")]
+pub mod stats;
 
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]

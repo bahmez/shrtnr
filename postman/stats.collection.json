@@ -1,0 +1,49 @@
+{
+  "info": {
+    "name": "shrtnr - Stats",
+    "_postman_id": "shrtnr-stats",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Link Stats",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/links/{{linkId}}/stats", "host": ["{{base_url}}"], "path": ["api","links","{{linkId}}","stats"] }
+      },
+      "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "const linkId = pm.environment.get('linkId');",
+        "if (linkId && linkId.length > 0) {",
+        "  pm.test('200', ()=> pm.response.to.have.status(200));",
+        "  let json = pm.response.json();",
+        "  pm.expect(json).to.have.keys(['link_id','total_clicks']);",
+        "} else {",
+        "  pm.test('Allow 400 when linkId missing', ()=> pm.response.to.have.status(400));",
+        "}"
+      ] } } ]
+    },
+    
+    {
+      "name": "Dashboard Stats",
+      "request": {
+        "method": "GET",
+        "header": [ { "key": "Authorization", "value": "Bearer {{access_token}}" } ],
+        "url": { "raw": "{{base_url}}/api/stats/dashboard", "host": ["{{base_url}}"], "path": ["api","stats","dashboard"] }
+      },
+      "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('200', ()=> pm.response.to.have.status(200));",
+        "let json = pm.response.json();",
+        "pm.expect(json).to.have.keys(['total_workspaces','total_links','total_clicks']);"
+      ] } } ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:3000" },
+    { "key": "access_token", "value": "" },
+    { "key": "workspaceId", "value": "" },
+    { "key": "linkId", "value": "" }
+  ]
+}
+
+

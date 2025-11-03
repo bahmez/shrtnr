@@ -25,6 +25,20 @@ async fn main() {
         delete_link_handler,
         redirect_handler,
     };
+    use shrtnr::workspaces::handlers::{
+        create_workspace_handler,
+        list_workspaces_handler,
+        get_workspace_handler,
+        update_workspace_handler,
+        delete_workspace_handler,
+        add_workspace_member_handler,
+        remove_workspace_member_handler,
+    };
+    use shrtnr::stats::handlers::{
+        get_link_stats_handler,
+        get_workspace_stats_handler,
+        get_dashboard_stats_handler,
+    };
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
@@ -64,11 +78,23 @@ async fn main() {
         // API Link management routes
         .route("/api/links", post(create_link_handler))
         .route("/api/links", get(list_links_handler))
-        .route("/api/links/:id", get(get_link_handler))
-        .route("/api/links/:id", put(update_link_handler))
-        .route("/api/links/:id", delete(delete_link_handler))
+        .route("/api/links/{id}", get(get_link_handler))
+        .route("/api/links/{id}", put(update_link_handler))
+        .route("/api/links/{id}", delete(delete_link_handler))
+        // API Workspace routes
+        .route("/api/workspaces", post(create_workspace_handler))
+        .route("/api/workspaces", get(list_workspaces_handler))
+        .route("/api/workspaces/{id}", get(get_workspace_handler))
+        .route("/api/workspaces/{id}", put(update_workspace_handler))
+        .route("/api/workspaces/{id}", delete(delete_workspace_handler))
+        .route("/api/workspaces/{id}/members", post(add_workspace_member_handler))
+        .route("/api/workspaces/{id}/members/{userId}", delete(remove_workspace_member_handler))
+        // API Stats routes
+        .route("/api/links/{id}/stats", get(get_link_stats_handler))
+        .route("/api/workspaces/{id}/stats", get(get_workspace_stats_handler))
+        .route("/api/stats/dashboard", get(get_dashboard_stats_handler))
         // Public redirect route (must be before leptos_routes to catch short codes)
-        .route("/:short_code", get(redirect_handler))
+        .route("/{short_code}", get(redirect_handler))
         .layer(Extension(db))
         .layer(Extension(app_state));
 
