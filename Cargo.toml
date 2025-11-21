@@ -19,7 +19,7 @@ sea-orm = { version = "0.12", features = ["macros", "runtime-tokio-rustls", "sql
 dotenvy = { version = "0.15", optional = true }
 jsonwebtoken = { version = "9", optional = true }
 bcrypt = { version = "0.15", optional = true }
-serde = { version = "1", features = ["derive"], optional = true }
+serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", optional = true }
 uuid = { version = "1", features = ["v4", "serde"], optional = true }
 chrono = { version = "0.4", features = ["serde"], optional = true }
@@ -29,6 +29,10 @@ axum-extra = { version = "0.10", features = ["typed-header"], optional = true }
 async-trait = { version = "0.1", optional = true }
 rand = { version = "0.8", optional = true }
 moka = { version = "0.12", features = ["future"], optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+gloo-net = { version = "0.4", features = ["http"] }
+web-sys = { version = "0.3", features = ["Storage", "Window"] }
 
 [features]
 hydrate = [
@@ -44,7 +48,6 @@ ssr = [
     "dep:dotenvy",
     "dep:jsonwebtoken",
     "dep:bcrypt",
-    "dep:serde",
     "dep:serde_json",
     "dep:uuid",
     "dep:chrono",
@@ -79,7 +82,7 @@ site-root = "target/site"
 site-pkg-dir = "pkg"
 
 # [Optional] The source CSS file. If it ends with .sass or .scss then it will be compiled by dart-sass into CSS. The CSS is optimized by Lightning CSS before being written to <site-root>/<site-pkg>/app.css
-style-file = "style/main.scss"
+style-file = "style/tailwind.css"
 # Assets source dir. All files found here will be copied and synchronized to site-root.
 # The assets-dir cannot have a sub directory with the same name/path as site-pkg-dir.
 #
