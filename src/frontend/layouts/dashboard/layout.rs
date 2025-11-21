@@ -1,5 +1,8 @@
-use super::{footer::DashboardFooter, navbar::DashboardNavbar, settings_modal::SettingsModal};
-use crate::frontend::state::use_auth_store;
+use super::{
+    footer::DashboardFooter, navbar::DashboardNavbar, settings_modal::SettingsModal,
+    workspace_modal::WorkspaceModal,
+};
+use crate::frontend::state::{provide_workspace_store, use_auth_store};
 use leptos::prelude::*;
 #[cfg(feature = "hydrate")]
 use leptos_router::hooks::{use_location, use_navigate};
@@ -7,9 +10,11 @@ use leptos_router::hooks::{use_location, use_navigate};
 use leptos_router::NavigateOptions;
 
 #[component]
-pub fn DashboardLayout(children: Children) -> impl IntoView {
+pub fn DashboardLayout(children: ChildrenFn) -> impl IntoView {
     let auth_store = use_auth_store();
     let show_settings_modal = RwSignal::new(false);
+    let show_workspace_modal = RwSignal::new(false);
+    let workspace_store = provide_workspace_store(auth_store.clone());
 
     let open_settings = {
         let show_settings_modal = show_settings_modal;
@@ -51,41 +56,62 @@ pub fn DashboardLayout(children: Children) -> impl IntoView {
                 );
             }
         });
+
+        {
+            let workspace_store = workspace_store.clone();
+            let user_signal = auth_store.user();
+            Effect::new(move |_| {
+                if let Some(user) = user_signal.get() {
+                    workspace_store.load_for_owner(user.id.clone());
+                } else {
+                    workspace_store.clear();
+                }
+            });
+        }
     }
 
-    let main_view = move || {
-        if initializing.get() {
-            view! {
+    #[cfg(not(feature = "hydrate"))]
+    {
+        workspace_store.clear();
+    }
+
+    let children_store = StoredValue::new(children.clone());
+
+    view! {
+        <Show
+            when=move || !initializing.get()
+            fallback=move || view! {
                 <div class="flex min-h-screen items-center justify-center bg-background text-sm text-foreground/70">
                     "Chargement du tableau de bord…"
                 </div>
             }
-            .into_any()
-        } else if is_authenticated.get() {
-            view! {
+        >
+            <Show
+                when=move || is_authenticated.get()
+                fallback=move || view! {
+                    <div class="flex min-h-screen items-center justify-center bg-background text-sm text-foreground/70">
+                        "Redirection vers la page de connexion…"
+                    </div>
+                }
+            >
                 <div class="flex min-h-screen flex-col bg-background text-foreground">
-                    <DashboardNavbar on_open_settings=open_settings.clone()/>
+                    <DashboardNavbar
+                        on_open_settings=open_settings.clone()
+                        on_open_workspace_modal=Callback::new({
+                            let show = show_workspace_modal.clone();
+                            move |_| show.set(true)
+                        })
+                    />
                     <main class="flex-1 bg-surface/40">
                         <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-12">
-                            {children()}
+                            {move || children_store.with_value(|child| child())}
                         </div>
                     </main>
                     <DashboardFooter/>
                 </div>
-            }
-            .into_any()
-        } else {
-            view! {
-                <div class="flex min-h-screen items-center justify-center bg-background text-sm text-foreground/70">
-                    "Redirection vers la page de connexion…"
-                </div>
-            }
-            .into_any()
-        }
-    };
-
-    view! {
-        {main_view()}
+            </Show>
+        </Show>
         <SettingsModal open=show_settings_modal/>
+        <WorkspaceModal open=show_workspace_modal/>
     }
 }

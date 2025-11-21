@@ -1,6 +1,6 @@
 use crate::frontend::{
     design_system::{Badge, BadgeVariant, Button, ButtonSize, ButtonVariant, Text, TextTone},
-    state::use_auth_store,
+    state::{use_auth_store, use_workspace_store},
 };
 use leptos::ev;
 use leptos::prelude::*;
@@ -14,13 +14,11 @@ use leptos_router::NavigateOptions;
 const NAV_LINKS: [(&str, &str); 3] = [("Links", "#"), ("Analytics", "#"), ("Settings", "#")];
 
 #[component]
-pub fn DashboardNavbar(on_open_settings: Callback<()>) -> impl IntoView {
-    let projects = RwSignal::new(vec![
-        "Campagne Paid Q3".to_string(),
-        "Newsletter Automne".to_string(),
-        "Partenaires Retail".to_string(),
-    ]);
-    let selected_project = RwSignal::new("Campagne Paid Q3".to_string());
+pub fn DashboardNavbar(
+    on_open_settings: Callback<()>,
+    on_open_workspace_modal: Callback<()>,
+) -> impl IntoView {
+    let workspace_store = use_workspace_store();
     let project_menu_open = RwSignal::new(false);
     let profile_menu_open = RwSignal::new(false);
     let mobile_menu_open = RwSignal::new(false);
@@ -58,20 +56,6 @@ pub fn DashboardNavbar(on_open_settings: Callback<()>) -> impl IntoView {
         })
     };
 
-    let create_new_project = {
-        let projects = projects;
-        let selected_project = selected_project;
-        let project_menu_open = project_menu_open;
-        Callback::new(move |_: ev::MouseEvent| {
-            projects.update(|list| {
-                let new_project = format!("Nouveau projet {}", list.len() + 1);
-                selected_project.set(new_project.clone());
-                list.push(new_project);
-            });
-            project_menu_open.set(false);
-        })
-    };
-
     let on_open_settings_dropdown = on_open_settings.clone();
     let open_settings = {
         let profile_menu_open = profile_menu_open;
@@ -82,6 +66,25 @@ pub fn DashboardNavbar(on_open_settings: Callback<()>) -> impl IntoView {
     };
 
     let on_open_settings_mobile = on_open_settings.clone();
+
+    let workspaces_signal = workspace_store.workspaces();
+    let selected_workspace = workspace_store.selected_workspace();
+    let workspaces_loading = workspace_store.loading();
+    let workspaces_error = workspace_store.last_error();
+    let workspace_label = Signal::derive(move || {
+        selected_workspace
+            .get()
+            .map(|ws| ws.name.clone())
+            .unwrap_or_else(|| "Aucun workspace".to_string())
+    });
+    let select_workspace = {
+        let workspace_store = workspace_store.clone();
+        let menu = project_menu_open.clone();
+        Callback::new(move |workspace_id: String| {
+            workspace_store.select_workspace(Some(workspace_id));
+            menu.set(false);
+        })
+    };
 
     let auth_store = use_auth_store();
     let user_signal = auth_store.user();
@@ -139,10 +142,10 @@ pub fn DashboardNavbar(on_open_settings: Callback<()>) -> impl IntoView {
                             >
                                 <span class="flex items-center gap-2">
                                     <Badge variant=BadgeVariant::Subtle class="bg-brand/15 text-brand">
-                                        "Projet"
+                                        "Workspace"
                                     </Badge>
                                     <span class="font-medium text-foreground/90">
-                                        {move || selected_project.get()}
+                                        {move || workspace_label.get()}
                                     </span>
                                 </span>
                                 <span aria-hidden="true" class="text-xs text-foreground/60">"▾"</span>
@@ -156,45 +159,82 @@ pub fn DashboardNavbar(on_open_settings: Callback<()>) -> impl IntoView {
                                                 "Vos projets"
                                             </Text>
                                         </div>
-                                        <div class="max-h-60 overflow-y-auto">
+                                        <div class="max-h-64 overflow-y-auto">
                                             {move || {
-                                                projects
-                                                    .get()
-                                                    .into_iter()
-                                                    .map(|project| {
-                                                        let selected_project = selected_project;
-                                                        let project_menu_open = project_menu_open;
-                                                    let display_label = project.clone();
-                                                    let select_value = project.clone();
-                                                    let indicator_value = project;
+                                                if workspaces_loading.get() {
+                                                    view! {
+                                                        <div class="px-4 py-3 text-xs text-foreground/60">
+                                                            "Chargement des workspaces…"
+                                                        </div>
+                                                    }
+                                                    .into_any()
+                                                } else if let Some(err) = workspaces_error.get() {
+                                                    view! {
+                                                        <div class="px-4 py-3 text-xs text-danger">
+                                                            {err}
+                                                        </div>
+                                                    }
+                                                    .into_any()
+                                                } else {
+                                                    let items = workspaces_signal.get();
+                                                    if items.is_empty() {
                                                         view! {
-                                                            <button
-                                                                class="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-foreground/90 transition hover:bg-surface-strong/70"
-                                                                on:click=move |_| {
-                                                                selected_project.set(select_value.clone());
-                                                                    project_menu_open.set(false);
-                                                                }
-                                                            >
-                                                            <span>{display_label.clone()}</span>
-                                                                {move || {
-                                                                let current = indicator_value.clone();
-                                                                (selected_project.get() == current)
-                                                                        .then(|| view! { <span class="text-xs text-brand">"●"</span> })
-                                                                }}
-                                                            </button>
+                                                            <div class="px-4 py-3 text-xs text-foreground/60">
+                                                                "Aucun workspace disponible."
+                                                            </div>
                                                         }
-                                                    })
-                                                    .collect_view()
+                                                        .into_any()
+                                                    } else {
+                                                        items
+                                                            .into_iter()
+                                                            .map(|workspace| {
+                                                                let id = workspace.id.clone();
+                                                                let name = workspace.name.clone();
+                                                                let select_workspace =
+                                                                    select_workspace.clone();
+                                                                let indicator_id = id.clone();
+                                                                view! {
+                                                                    <button
+                                                                        class="flex w-full items-center justify-between px-4 py-3 text-left text-sm text-foreground/90 transition hover:bg-surface-strong/70"
+                                                                        on:click=move |_| {
+                                                                            select_workspace.run(id.clone());
+                                                                        }
+                                                                    >
+                                                                        <span>{name.clone()}</span>
+                                                                        {move || {
+                                                                            selected_workspace
+                                                                                .get()
+                                                                                .as_ref()
+                                                                                .filter(|current| current.id == indicator_id)
+                                                                                .map(|_| {
+                                                                                    view! {
+                                                                                        <span class="text-xs text-brand">"●"</span>
+                                                                                    }
+                                                                                })
+                                                                        }}
+                                                                    </button>
+                                                                }
+                                                            })
+                                                            .collect_view()
+                                                            .into_any()
+                                                    }
+                                                }
                                             }}
                                         </div>
-                                        <div class="px-4 py-3">
+                                        <div class="border-t border-border/40 px-4 py-3">
                                             <Button
                                                 variant=ButtonVariant::Ghost
                                                 size=ButtonSize::Sm
                                                 class="w-full justify-center"
-                                                on_click=create_new_project
+                                                on_click=Callback::new({
+                                                    let menu = project_menu_open.clone();
+                                                    move |_: ev::MouseEvent| {
+                                                        menu.set(false);
+                                                        on_open_workspace_modal.run(());
+                                                    }
+                                                })
                                             >
-                                                "+ Créer un projet"
+                                                "+ Nouveau workspace"
                                             </Button>
                                         </div>
                                     </div>
@@ -350,6 +390,21 @@ pub fn DashboardNavbar(on_open_settings: Callback<()>) -> impl IntoView {
                                     .into_any()
                                 })
                             }}
+                            <Button
+                                variant=ButtonVariant::Ghost
+                                size=ButtonSize::Sm
+                                class="justify-center"
+                                on_click=Callback::new({
+                                    let mobile_menu_open = mobile_menu_open.clone();
+                                    let on_open_workspace_modal = on_open_workspace_modal.clone();
+                                    move |_: ev::MouseEvent| {
+                                        mobile_menu_open.set(false);
+                                        on_open_workspace_modal.run(());
+                                    }
+                                })
+                            >
+                                "Créer un workspace"
+                            </Button>
                             <Button
                                 variant=ButtonVariant::Outline
                                 size=ButtonSize::Sm

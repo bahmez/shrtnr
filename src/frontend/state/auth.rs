@@ -46,6 +46,10 @@ impl AuthStore {
         self.initializing.read_only()
     }
 
+    pub fn finish_initializing(&self) {
+        self.initializing.set(false);
+    }
+
     pub fn last_error(&self) -> ReadSignal<Option<String>> {
         self.last_error.read_only()
     }
@@ -117,7 +121,6 @@ impl AuthStore {
         self.initializing.set(false);
     }
 
-    #[cfg(feature = "hydrate")]
     pub fn access_token(&self) -> Option<String> {
         self.tokens.get().map(|tokens| tokens.access_token.clone())
     }
@@ -188,6 +191,11 @@ pub fn provide_auth_store() -> AuthStore {
                 store.initialize().await;
             }
         });
+    }
+
+    #[cfg(not(feature = "hydrate"))]
+    {
+        store.finish_initializing();
     }
 
     store
