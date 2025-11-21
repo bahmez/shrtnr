@@ -38,7 +38,7 @@ pub fn InputField(
     #[prop(optional, into)] name: Option<String>,
     #[prop(optional, into)] placeholder: Option<String>,
     #[prop(default = "text")] input_type: &'static str,
-    #[prop(optional, into)] value: Option<String>,
+    #[prop(optional, into)] value: Option<Signal<String>>,
     #[prop(optional, into)] class: Option<String>,
     #[prop(optional)] disabled: bool,
     #[prop(optional, into)] on_input: Option<Callback<ev::Event>>,
@@ -51,6 +51,8 @@ pub fn InputField(
     .collect::<Vec<_>>()
     .join(" ");
 
+    let value_signal = value.unwrap_or_else(|| Signal::derive(|| String::new()));
+
     let handler = on_input.clone();
 
     view! {
@@ -60,7 +62,7 @@ pub fn InputField(
             name=name.unwrap_or_default()
             placeholder=placeholder.unwrap_or_default()
             r#type=input_type
-            value=value.unwrap_or_default()
+            value=move || value_signal.get()
             disabled=disabled
             on:input=move |ev| {
                 if let Some(cb) = handler.clone() {

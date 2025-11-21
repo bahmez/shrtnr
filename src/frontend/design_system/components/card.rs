@@ -19,7 +19,10 @@ pub fn Card(#[prop(optional, into)] class: Option<String>, children: Children) -
 }
 
 #[component]
-pub fn CardHeader(#[prop(optional, into)] class: Option<String>, children: Children) -> impl IntoView {
+pub fn CardHeader(
+    #[prop(optional, into)] class: Option<String>,
+    children: Children,
+) -> impl IntoView {
     let classes = format!(
         "flex flex-col gap-2 px-6 pt-6 {}",
         class.unwrap_or_default()
@@ -32,7 +35,10 @@ pub fn CardHeader(#[prop(optional, into)] class: Option<String>, children: Child
 }
 
 #[component]
-pub fn CardBody(#[prop(optional, into)] class: Option<String>, children: Children) -> impl IntoView {
+pub fn CardBody(
+    #[prop(optional, into)] class: Option<String>,
+    children: Children,
+) -> impl IntoView {
     let classes = format!(
         "px-6 pb-6 text-sm text-foreground/90 {}",
         class.unwrap_or_default()
@@ -45,7 +51,10 @@ pub fn CardBody(#[prop(optional, into)] class: Option<String>, children: Childre
 }
 
 #[component]
-pub fn CardFooter(#[prop(optional, into)] class: Option<String>, children: Children) -> impl IntoView {
+pub fn CardFooter(
+    #[prop(optional, into)] class: Option<String>,
+    children: Children,
+) -> impl IntoView {
     let classes = format!(
         "px-6 pb-6 pt-4 border-t border-border/50 flex items-center gap-4 {}",
         class.unwrap_or_default()
