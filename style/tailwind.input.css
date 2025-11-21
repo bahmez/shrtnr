@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+    background-color: theme("colors.background");
+    color: theme("colors.foreground");
+  }
+
+  body {
+    font-family: theme("fontFamily.sans");
+    background-color: theme("colors.background");
+    color: theme("colors.foreground");
+  }
+
+  * {
+    border-color: theme("colors.border");
+  }
+
+  main::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      radial-gradient(circle at top, rgba(99, 102, 241, 0.18), transparent 55%),
+      radial-gradient(circle at bottom right, rgba(20, 184, 166, 0.12), transparent 45%);
+    pointer-events: none;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply rounded-2xl border border-border/60 bg-surface/70 backdrop-blur shadow-xl shadow-black/10;
+  }
+}
+

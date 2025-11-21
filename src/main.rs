@@ -1,44 +1,32 @@
-
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {
-    use axum::{extract::Extension, Router, routing::{get, post, put, delete}};
+    use axum::{
+        extract::Extension,
+        routing::{delete, get, post, put},
+        Router,
+    };
     use leptos::logging::log;
     use leptos::prelude::*;
     use leptos_axum::{generate_route_list, LeptosRoutes};
-    use shrtnr::app::*;
-    use shrtnr::db;
-    use shrtnr::config::AppState;
-    use shrtnr::auth::handlers::{
-        register_handler,
-        login_handler,
-        logout_handler,
-        refresh_token_handler,
-        me_handler,
+    use shrtnr::backend;
+    use shrtnr::backend::auth::handlers::{
+        login_handler, logout_handler, me_handler, refresh_token_handler, register_handler,
         update_profile_handler,
     };
-    use shrtnr::links::handlers::{
-        create_link_handler,
-        list_links_handler,
-        get_link_handler,
-        update_link_handler,
-        delete_link_handler,
-        redirect_handler,
+    use shrtnr::backend::links::handlers::{
+        create_link_handler, delete_link_handler, get_link_handler, list_links_handler,
+        redirect_handler, update_link_handler,
     };
-    use shrtnr::workspaces::handlers::{
-        create_workspace_handler,
-        list_workspaces_handler,
-        get_workspace_handler,
+    use shrtnr::backend::stats::handlers::{
+        get_dashboard_stats_handler, get_link_stats_handler, get_workspace_stats_handler,
+    };
+    use shrtnr::backend::workspaces::handlers::{
+        add_workspace_member_handler, create_workspace_handler, delete_workspace_handler,
+        get_workspace_handler, list_workspaces_handler, remove_workspace_member_handler,
         update_workspace_handler,
-        delete_workspace_handler,
-        add_workspace_member_handler,
-        remove_workspace_member_handler,
     };
-    use shrtnr::stats::handlers::{
-        get_link_stats_handler,
-        get_workspace_stats_handler,
-        get_dashboard_stats_handler,
-    };
+    use shrtnr::frontend::{shell, App};
 
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
@@ -47,14 +35,16 @@ async fn main() {
     let routes = generate_route_list(App);
 
     // Initialize database connection (supports Postgres or SQLite via DATABASE_URL)
-    let db = db::connect().await.expect("failed to connect to database");
+    let db = backend::connect()
+        .await
+        .expect("failed to connect to database");
 
     // Get JWT secret from environment or use default for development
     let jwt_secret = std::env::var("JWT_SECRET")
         .unwrap_or_else(|_| "your-secret-key-change-this-in-production".to_string());
 
     // Create application state
-    let app_state = AppState::new(db.clone(), &jwt_secret);
+    let app_state = backend::AppState::new(db.clone(), &jwt_secret);
 
     // First, create the Leptos router with its state
     let leptos_router = Router::new()
@@ -87,11 +77,20 @@ async fn main() {
         .route("/api/workspaces/{id}", get(get_workspace_handler))
         .route("/api/workspaces/{id}", put(update_workspace_handler))
         .route("/api/workspaces/{id}", delete(delete_workspace_handler))
-        .route("/api/workspaces/{id}/members", post(add_workspace_member_handler))
-        .route("/api/workspaces/{id}/members/{userId}", delete(remove_workspace_member_handler))
+        .route(
+            "/api/workspaces/{id}/members",
+            post(add_workspace_member_handler),
+        )
+        .route(
+            "/api/workspaces/{id}/members/{userId}",
+            delete(remove_workspace_member_handler),
+        )
         // API Stats routes
         .route("/api/links/{id}/stats", get(get_link_stats_handler))
-        .route("/api/workspaces/{id}/stats", get(get_workspace_stats_handler))
+        .route(
+            "/api/workspaces/{id}/stats",
+            get(get_workspace_stats_handler),
+        )
         .route("/api/stats/dashboard", get(get_dashboard_stats_handler))
         // Public redirect route (must be before leptos_routes to catch short codes)
         .route("/{short_code}", get(redirect_handler))
@@ -99,18 +98,14 @@ async fn main() {
         .layer(Extension(app_state));
 
     // Merge the two routers
-    let app = Router::new()
-        .merge(api_router)
-        .merge(leptos_router);
+    let app = Router::new().merge(api_router).merge(leptos_router);
 
     // run our app with hyper
     // `axum::Server` is a re-export of `hyper::Server`
     log!("listening on http://{}", &addr);
     let listener = tokio::net::TcpListener::bind(&addr).await.unwrap();
     let app_service = app.into_make_service_with_connect_info::<std::net::SocketAddr>();
-    axum::serve(listener, app_service)
-        .await
-        .unwrap();
+    axum::serve(listener, app_service).await.unwrap();
 }
 
 #[cfg(not(feature = "ssr"))]
