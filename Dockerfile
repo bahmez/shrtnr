@@ -37,6 +37,9 @@ COPY src ./src
 # Build Tailwind styles before the Rust build
 RUN npm run tailwind:build
 
+# Keep wasm-bindgen CLI aligned with the version expected by cargo-leptos
+ENV LEPTOS_WASM_BINDGEN_VERSION=0.2.105
+
 # Build the application
 RUN cargo leptos build --release
 
