@@ -7,7 +7,7 @@ steps:
       [
         "build",
         "-t",
-        "$_IMAGE",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$SHORT_SHA",
         "-f",
         "Dockerfile",
         ".",
@@ -15,7 +15,11 @@ steps:
 
   - name: gcr.io/cloud-builders/docker
     id: Push image
-    args: ["push", "$_IMAGE"]
+    args:
+      [
+        "push",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$SHORT_SHA",
+      ]
 
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
     id: Deploy to Cloud Run
@@ -30,7 +34,7 @@ steps:
         "--region",
         "$_REGION",
         "--image",
-        "$_IMAGE",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$SHORT_SHA",
         "--platform",
         "managed",
         "--allow-unauthenticated",
@@ -39,14 +43,13 @@ steps:
       ]
 
 images:
-  - "$_IMAGE"
+  - "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$SHORT_SHA"
 
 # Default values that can be overridden per trigger.
 substitutions:
   _SERVICE: shrtnr
   _REGION: europe-west1
   _REPOSITORY: shrtnr
-  _IMAGE: europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/shrtnr:$SHORT_SHA
   _DATABASE_URL: ""
   _JWT_SECRET: ""
 
