@@ -1,0 +1,55 @@
+# Builds the Docker image, pushes it to Artifact Registry, then deploys it to
+# Cloud Run while sourcing environment variables from trigger substitutions.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: Build image
+    args:
+      [
+        "build",
+        "-t",
+        "$_IMAGE",
+        "-f",
+        "Dockerfile",
+        ".",
+      ]
+
+  - name: gcr.io/cloud-builders/docker
+    id: Push image
+    args: ["push", "$_IMAGE"]
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    id: Deploy to Cloud Run
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "$_SERVICE",
+        "--project",
+        "$PROJECT_ID",
+        "--region",
+        "$_REGION",
+        "--image",
+        "$_IMAGE",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--set-env-vars",
+        "DATABASE_URL=$_DATABASE_URL,JWT_SECRET=$_JWT_SECRET",
+      ]
+
+images:
+  - "$_IMAGE"
+
+# Default values that can be overridden per trigger.
+substitutions:
+  _SERVICE: shrtnr
+  _REGION: europe-west1
+  _REPOSITORY: shrtnr
+  _IMAGE: europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/shrtnr:$SHORT_SHA
+  _DATABASE_URL: ""
+  _JWT_SECRET: ""
+
+options:
+  substitution_option: ALLOW_LOOSE
+
