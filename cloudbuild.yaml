@@ -80,7 +80,6 @@ substitutions:
 options:
   substitution_option: ALLOW_LOOSE
   logging: CLOUD_LOGGING_ONLY
-  machineType: E2_HIGHCPU_4
   env:
     - DOCKER_BUILDKIT=1
 
