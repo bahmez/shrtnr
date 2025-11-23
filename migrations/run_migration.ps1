@@ -10,6 +10,11 @@ if (Test-Path .env) {
     }
 }
 
+# Déterminer les fichiers de migration
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$sqliteFile = Join-Path $scriptDir "001_create_tables.sql"
+$postgresFile = Join-Path $scriptDir "001_create_tables_postgres.sql"
+
 # Utiliser DATABASE_URL ou valeur par défaut
 $DATABASE_URL = if ($env:DATABASE_URL) { $env:DATABASE_URL } else { "sqlite:shrtnr.db?mode=rwc" }
 
@@ -25,13 +30,29 @@ if ($DATABASE_URL -match '^sqlite:(.+?)(\?.*)?$') {
         New-Item -Path $dbFile -ItemType File -Force | Out-Null
     }
     
+    if (!(Test-Path $sqliteFile)) {
+        Write-Error "Fichier de migration SQLite introuvable: $sqliteFile"
+        exit 1
+    }
+
     # Exécuter la migration
-    Get-Content migrations\001_create_tables.sql | sqlite3 $dbFile
+    Get-Content $sqliteFile | sqlite3 $dbFile
     Write-Host "Migration terminée!"
 }
 elseif ($DATABASE_URL -match '^postgresql:') {
     Write-Host "Exécution de la migration pour PostgreSQL"
-    Get-Content migrations\001_create_tables.sql | psql $DATABASE_URL
+
+    if (-not (Get-Command psql -ErrorAction SilentlyContinue)) {
+        Write-Error "psql n'est pas installé ou introuvable dans le PATH."
+        exit 1
+    }
+
+    if (!(Test-Path $postgresFile)) {
+        Write-Error "Fichier de migration PostgreSQL introuvable: $postgresFile"
+        exit 1
+    }
+
+    Get-Content $postgresFile | psql $DATABASE_URL
     Write-Host "Migration terminée!"
 }
 else {
