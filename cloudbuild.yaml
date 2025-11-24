@@ -1,0 +1,85 @@
+# Builds the Docker image, pushes it to Artifact Registry, then deploys it to
+# Cloud Run while sourcing environment variables from trigger substitutions.
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: Pull cache image
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        docker pull europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$_CACHE_TAG || true
+
+  - name: gcr.io/cloud-builders/docker
+    id: Build image
+    args:
+      [
+        "build",
+        "--build-arg",
+        "BUILDKIT_INLINE_CACHE=1",
+        "--cache-from",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$_CACHE_TAG",
+        "-t",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$SHORT_SHA",
+        "-t",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$_CACHE_TAG",
+        "-f",
+        "Dockerfile",
+        ".",
+      ]
+
+  - name: gcr.io/cloud-builders/docker
+    id: Push release image
+    args:
+      [
+        "push",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$SHORT_SHA",
+      ]
+
+  - name: gcr.io/cloud-builders/docker
+    id: Push cache image
+    args:
+      [
+        "push",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$_CACHE_TAG",
+      ]
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    id: Deploy to Cloud Run
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "$_SERVICE",
+        "--project",
+        "$PROJECT_ID",
+        "--region",
+        "$_REGION",
+        "--image",
+        "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$SHORT_SHA",
+        "--platform",
+        "managed",
+        "--allow-unauthenticated",
+        "--set-env-vars",
+        "DATABASE_URL=$_DATABASE_URL,JWT_SECRET=$_JWT_SECRET",
+      ]
+
+images:
+  - "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$SHORT_SHA"
+  - "europe-west1-docker.pkg.dev/$PROJECT_ID/$_REPOSITORY/$_SERVICE:$_CACHE_TAG"
+
+# Default values that can be overridden per trigger.
+substitutions:
+  _SERVICE: shrtnr
+  _REGION: europe-west1
+  _REPOSITORY: shrtnr
+  _CACHE_TAG: cache
+  _DATABASE_URL: ""
+  _JWT_SECRET: ""
+
+options:
+  substitution_option: ALLOW_LOOSE
+  logging: CLOUD_LOGGING_ONLY
+  env:
+    - DOCKER_BUILDKIT=1
+
