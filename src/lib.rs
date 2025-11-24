@@ -1,3 +1,5 @@
+#![recursion_limit = "2048"]
+
 #[cfg(feature = "ssr")]
 pub mod backend;
 pub mod frontend;
