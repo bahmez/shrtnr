@@ -68,35 +68,44 @@ fn members_section(
                 </div>
             })}
 
-            {move || {
-                if members_loading.get() {
-                    view! {
-                        <div class="py-8 text-center">
-                            <Text tone=TextTone::Muted>"Chargement des membres..."</Text>
-                        </div>
-                    }
-                    .into_view()
-                } else if let Some(err) = members_error.get() {
-                    view! {
-                        <div class="rounded-lg border border-danger/20 bg-danger/10 p-3">
-                            <Text tone=TextTone::Danger class="text-sm">{err}</Text>
-                        </div>
-                    }
-                    .into_view()
-                } else if members.get().is_empty() {
-                    view! {
-                        <div class="py-8 text-center">
-                            <Text tone=TextTone::Muted>"Aucun membre dans ce workspace"</Text>
-                        </div>
-                    }
-                    .into_view()
-                } else {
-                    view! {
-                        <div class="mt-6 grid gap-4">
-                            <For
-                                each=move || members.get()
-                                key=|member| member.user_email.clone()
-                                children=move |member| {
+            <Show
+                when=move || members_loading.get()
+                fallback=move || ()
+            >
+                <div class="py-8 text-center">
+                    <Text tone=TextTone::Muted>"Chargement des membres..."</Text>
+                </div>
+            </Show>
+
+            <Show
+                when=move || members_error.get().is_some()
+                fallback=move || ()
+            >
+                {move || members_error.get().map(|err| view! {
+                    <div class="rounded-lg border border-danger/20 bg-danger/10 p-3">
+                        <Text tone=TextTone::Danger class="text-sm">{err}</Text>
+                    </div>
+                })}
+            </Show>
+
+            <Show
+                when=move || !members_loading.get() && members_error.get().is_none() && members.get().is_empty()
+                fallback=move || ()
+            >
+                <div class="py-8 text-center">
+                    <Text tone=TextTone::Muted>"Aucun membre dans ce workspace"</Text>
+                </div>
+            </Show>
+
+            <Show
+                when=move || !members_loading.get() && members_error.get().is_none() && !members.get().is_empty()
+                fallback=move || ()
+            >
+                <div class="mt-6 grid gap-4">
+                    <For
+                        each=move || members.get()
+                        key=|member| member.user_email.clone()
+                        children=move |member| {
                                     let role = member.role.clone();
                                     let user_email = member.user_email.clone();
                                     let user_name = member.user_name.clone();
@@ -215,12 +224,9 @@ fn members_section(
                                         </Card>
                                     }
                                 }
-                            />
-                        </div>
-                    }
-                    .into_view()
-                }
-            }}
+                    />
+                </div>
+            </Show>
         </div>
     }
 }
@@ -569,26 +575,29 @@ pub fn SettingsPage() -> impl IntoView {
                     </Text>
                 </div>
 
-                {move || {
-                    if !has_workspace.get() {
-                        view! {
-                            <div class="rounded-2xl border border-border/60 bg-surface/80 p-12 shadow-lg shadow-black/5 backdrop-blur">
-                                <div class="flex flex-col items-center justify-center gap-6 text-center">
-                                    <div class="flex flex-col gap-2">
-                                        <Heading level=HeadingLevel::H2 class="text-xl">
-                                            "Aucun workspace sélectionné"
-                                        </Heading>
-                                        <Text tone=TextTone::Muted class="text-sm">
-                                            "Sélectionnez un workspace existant ou créez-en un nouveau pour commencer"
-                                        </Text>
-                                    </div>
-                                </div>
+                <Show
+                    when=move || !has_workspace.get()
+                    fallback=move || ()
+                >
+                    <div class="rounded-2xl border border-border/60 bg-surface/80 p-12 shadow-lg shadow-black/5 backdrop-blur">
+                        <div class="flex flex-col items-center justify-center gap-6 text-center">
+                            <div class="flex flex-col gap-2">
+                                <Heading level=HeadingLevel::H2 class="text-xl">
+                                    "Aucun workspace sélectionné"
+                                </Heading>
+                                <Text tone=TextTone::Muted class="text-sm">
+                                    "Sélectionnez un workspace existant ou créez-en un nouveau pour commencer"
+                                </Text>
                             </div>
-                        }
-                        .into_view()
-                    } else {
-                        view! {
-                            <div class="grid gap-8">
+                        </div>
+                    </div>
+                </Show>
+
+                <Show
+                    when=move || has_workspace.get()
+                    fallback=move || ()
+                >
+                    <div class="grid gap-8">
                                 // Section modification du workspace
                                 <div class="rounded-2xl border border-border/60 bg-surface/80 p-6 shadow-lg shadow-black/5 backdrop-blur">
                                     <div class="mb-6 flex flex-col gap-2">
@@ -678,13 +687,10 @@ pub fn SettingsPage() -> impl IntoView {
                         </form>
                     </div>
 
-                                // Section liste des membres avec modal d'invitation
-                                {members_section(members, members_loading, members_error, remove_loading, remove_error, remove_success, show_invite_modal_clone)}
-                            </div>
-                        }
-                        .into_view()
-                    }
-                }}
+                        // Section liste des membres avec modal d'invitation
+                        {members_section(members, members_loading, members_error, remove_loading, remove_error, remove_success, show_invite_modal_clone)}
+                    </div>
+                </Show>
             </div>
 
             // Modal d'invitation

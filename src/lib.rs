@@ -1,4 +1,4 @@
-#![recursion_limit = "512"]
+#![recursion_limit = "2048"]
 
 #[cfg(feature = "ssr")]
 pub mod backend;
