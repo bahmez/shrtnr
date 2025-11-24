@@ -10,13 +10,13 @@ pub fn DashboardFooter() -> impl IntoView {
                     "shrtnr dashboard · Surveillez vos liens, vos audiences et vos insights."
                 </Text>
                 <div class="flex items-center gap-4 text-xs sm:text-sm">
-                    <a href="#" class="transition hover:text-foreground">
+                    <a href="/support" class="transition hover:text-foreground">
                         "Support"
                     </a>
-                    <a href="#" class="transition hover:text-foreground">
+                    <a href="/status" class="transition hover:text-foreground">
                         "Status"
                     </a>
-                    <a href="#" class="transition hover:text-foreground">
+                    <a href="/aide" class="transition hover:text-foreground">
                         "Aide"
                     </a>
                 </div>

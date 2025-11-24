@@ -16,7 +16,7 @@ pub struct WorkspaceSummary {
     pub owner_id: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct WorkspaceStore {
     #[cfg_attr(not(feature = "hydrate"), allow(dead_code))]
     auth_store: AuthStore,
@@ -163,6 +163,14 @@ impl WorkspaceStore {
             selected_id.set(Some(summary.id.clone()));
             Ok(summary)
         })
+    }
+
+    pub fn update_workspace_in_store(&self, updated: WorkspaceSummary) {
+        self.workspaces.update(|workspaces| {
+            if let Some(ws) = workspaces.iter_mut().find(|w| w.id == updated.id) {
+                ws.name = updated.name.clone();
+            }
+        });
     }
 
 }

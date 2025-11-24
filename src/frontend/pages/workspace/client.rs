@@ -43,6 +43,7 @@ pub async fn fetch_workspace_stats(
 
 #[cfg(feature = "hydrate")]
 #[derive(serde::Deserialize)]
+#[allow(dead_code)]
 struct LinkResponse {
     id: String,
     short_code: String,
@@ -58,6 +59,7 @@ struct LinkResponse {
 
 #[cfg(feature = "hydrate")]
 #[derive(serde::Deserialize)]
+#[allow(dead_code)]
 struct LinkListResponse {
     links: Vec<LinkResponse>,
     total: usize,

@@ -118,7 +118,7 @@ pub fn WorkspacePage() -> impl IntoView {
 
                 <div class="grid gap-6 md:grid-cols-2">
                     <Card>
-                        <CardHeader>
+                        <CardHeader class="justify-center min-h-[120px] pb-6">
                             <Text tone=TextTone::Muted class="text-xs uppercase tracking-wide">
                                 "Total de liens"
                             </Text>
@@ -139,11 +139,11 @@ pub fn WorkspacePage() -> impl IntoView {
                     </Card>
 
                     <Card>
-                        <CardHeader>
+                        <CardHeader class="justify-center min-h-[120px] pb-6">
                             <Text tone=TextTone::Muted class="text-xs uppercase tracking-wide">
                                 "Total de clics"
                             </Text>
-                            <Heading level=HeadingLevel::H2 class="pb-2">
+                            <Heading level=HeadingLevel::H2>
                                 {move || {
                                     stats.get()
                                         .map(|s| s.total_clicks.to_string())
