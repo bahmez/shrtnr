@@ -9,7 +9,7 @@ use uuid::Uuid;
 use crate::backend::{
     entities::workspace_member::Role,
     middleware::AuthUser,
-    repositories::{WorkspaceMemberRepository, WorkspaceRepository},
+    repositories::{UserRepository, WorkspaceMemberRepository, WorkspaceRepository},
 };
 use crate::shared::responses::ApiError;
 
@@ -72,7 +72,10 @@ pub struct DeleteWorkspaceResponse {
 
 #[derive(Debug, Deserialize)]
 pub struct AddWorkspaceMemberRequest {
-    pub user_id: String,
+    #[serde(default)]
+    pub user_id: Option<String>,
+    #[serde(default)]
+    pub email: Option<String>,
     pub role: Role,
 }
 
@@ -99,6 +102,21 @@ pub struct WorkspaceMemberResponse {
     pub user_id: String,
     pub role: Role,
     pub joined_at: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct WorkspaceMemberWithUserResponse {
+    pub workspace_id: String,
+    pub user_id: String,
+    pub user_email: String,
+    pub user_name: Option<String>,
+    pub role: String,
+    pub joined_at: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct ListWorkspaceMembersResponse {
+    pub members: Vec<WorkspaceMemberWithUserResponse>,
 }
 
 // ===== Handlers =====
@@ -173,7 +191,7 @@ pub async fn list_workspaces_handler(
         auth_user.user_id
     };
 
-    let items = WorkspaceRepository::find_by_owner(&auth_user.state.db, owner_uuid)
+    let owned_workspaces = WorkspaceRepository::find_by_owner(&auth_user.state.db, owner_uuid)
         .await
         .map_err(|e| {
             (
@@ -184,7 +202,44 @@ pub async fn list_workspaces_handler(
             )
         })?;
 
-    let workspaces = items
+    let memberships = WorkspaceMemberRepository::find_by_user(&auth_user.state.db, auth_user.user_id)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: format!("Erreur lors de la récupération des membreships: {}", e),
+                }),
+            )
+        })?;
+
+    // Récupérer les workspaces correspondants aux membreships
+    let mut member_workspaces = Vec::new();
+    for membership in memberships {
+        if let Some(workspace) = WorkspaceRepository::find_by_id(&auth_user.state.db, membership.workspace_id)
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ErrorResponse {
+                        error: format!("Erreur lors de la récupération du workspace: {}", e),
+                    }),
+                )
+            })?
+        {
+            member_workspaces.push(workspace);
+        }
+    }
+
+    // Combiner les deux listes en évitant les doublons
+    let mut all_workspaces = owned_workspaces;
+    for member_ws in member_workspaces {
+        if !all_workspaces.iter().any(|ws| ws.id == member_ws.id) {
+            all_workspaces.push(member_ws);
+        }
+    }
+
+    let workspaces = all_workspaces
         .into_iter()
         .map(|w| WorkspaceResponse {
             id: w.id.to_string(),
@@ -383,14 +438,42 @@ pub async fn add_workspace_member_handler(
             }),
         )
     })?;
-    let user_id = Uuid::parse_str(&payload.user_id).map_err(|_| {
-        (
+    
+    let user_id = if let Some(user_id_str) = &payload.user_id {
+        Uuid::parse_str(user_id_str).map_err(|_| {
+            (
+                StatusCode::BAD_REQUEST,
+                Json(ErrorResponse {
+                    error: "user_id invalide (UUID attendu)".to_string(),
+                }),
+            )
+        })?
+    } else if let Some(email) = &payload.email {
+        let user = crate::backend::repositories::UserRepository::find_by_email(&auth_user.state.db, email)
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ErrorResponse {
+                        error: e.to_string(),
+                    }),
+                )
+            })?
+            .ok_or((
+                StatusCode::NOT_FOUND,
+                Json(ErrorResponse {
+                    error: format!("Aucun utilisateur trouvé avec l'email {}", email),
+                }),
+            ))?;
+        user.id
+    } else {
+        return Err((
             StatusCode::BAD_REQUEST,
             Json(ErrorResponse {
-                error: "user_id invalide (UUID attendu)".to_string(),
+                error: "user_id ou email requis".to_string(),
             }),
-        )
-    })?;
+        ));
+    };
 
     let existing = WorkspaceRepository::find_by_id(&auth_user.state.db, ws_id)
         .await
@@ -408,7 +491,6 @@ pub async fn add_workspace_member_handler(
                 error: "Workspace non trouvé".to_string(),
             }),
         ))?;
-    // Autoriser Owner ou Admin à gérer les membres
     if existing.owner_id != auth_user.user_id {
         let me =
             WorkspaceMemberRepository::find_by_ids(&auth_user.state.db, ws_id, auth_user.user_id)
@@ -593,5 +675,138 @@ pub async fn remove_workspace_member_handler(
 
     Ok(Json(RemoveWorkspaceMemberResponse {
         message: "Membre supprimé".to_string(),
+    }))
+}
+
+pub async fn list_workspace_members_handler(
+    auth_user: AuthUser,
+    Path(workspace_id): Path<String>,
+) -> Result<Json<ListWorkspaceMembersResponse>, (StatusCode, Json<ErrorResponse>)> {
+    let ws_id = Uuid::parse_str(&workspace_id).map_err(|_| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(ErrorResponse {
+                error: "workspace_id invalide (UUID attendu)".to_string(),
+            }),
+        )
+    })?;
+
+    let existing = WorkspaceRepository::find_by_id(&auth_user.state.db, ws_id)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: e.to_string(),
+                }),
+            )
+        })?
+        .ok_or((
+            StatusCode::NOT_FOUND,
+            Json(ErrorResponse {
+                error: "Workspace non trouvé".to_string(),
+            }),
+        ))?;
+
+    if existing.owner_id != auth_user.user_id {
+        let me = WorkspaceMemberRepository::find_by_ids(&auth_user.state.db, ws_id, auth_user.user_id)
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ErrorResponse {
+                        error: e.to_string(),
+                    }),
+                )
+            })?;
+        if me.is_none() {
+            return Err((
+                StatusCode::FORBIDDEN,
+                Json(ErrorResponse {
+                    error: "Accès interdit".to_string(),
+                }),
+            ));
+        }
+    }
+
+    let members = WorkspaceMemberRepository::find_by_workspace(&auth_user.state.db, ws_id)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(ErrorResponse {
+                    error: e.to_string(),
+                }),
+            )
+        })?;
+
+    let mut members_with_users = Vec::new();
+    for member in members {
+        let user = UserRepository::find_by_id(&auth_user.state.db, member.user_id)
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ErrorResponse {
+                        error: e.to_string(),
+                    }),
+                )
+            })?
+            .ok_or((
+                StatusCode::NOT_FOUND,
+                Json(ErrorResponse {
+                    error: format!("Utilisateur {} non trouvé", member.user_id),
+                }),
+            ))?;
+
+        let role_str = match member.role {
+            Role::Owner => "Owner".to_string(),
+            Role::Admin => "Admin".to_string(),
+            Role::Member => "Member".to_string(),
+        };
+        members_with_users.push(WorkspaceMemberWithUserResponse {
+            workspace_id: member.workspace_id.to_string(),
+            user_id: member.user_id.to_string(),
+            user_email: user.email,
+            user_name: user.name,
+            role: role_str,
+            joined_at: member.joined_at.map(|dt| dt.to_string()),
+        });
+    }
+
+    let owner_in_list = members_with_users
+        .iter()
+        .any(|m| m.user_id == existing.owner_id.to_string());
+    
+    if !owner_in_list {
+        let owner = UserRepository::find_by_id(&auth_user.state.db, existing.owner_id)
+            .await
+            .map_err(|e| {
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    Json(ErrorResponse {
+                        error: e.to_string(),
+                    }),
+                )
+            })?
+            .ok_or((
+                StatusCode::NOT_FOUND,
+                Json(ErrorResponse {
+                    error: "Propriétaire du workspace non trouvé".to_string(),
+                }),
+            ))?;
+
+        members_with_users.insert(0, WorkspaceMemberWithUserResponse {
+            workspace_id: existing.id.to_string(),
+            user_id: existing.owner_id.to_string(),
+            user_email: owner.email,
+            user_name: owner.name,
+            role: "Owner".to_string(),
+            joined_at: existing.created_at.map(|dt| dt.to_string()),
+        });
+    }
+
+    Ok(Json(ListWorkspaceMembersResponse {
+        members: members_with_users,
     }))
 }

@@ -23,3 +23,5 @@ Cargo.lock
 
 node_modules/
 style/tailwind.css
+
+CLAUDE.md

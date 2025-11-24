@@ -16,7 +16,7 @@ pub struct WorkspaceSummary {
     pub owner_id: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct WorkspaceStore {
     #[cfg_attr(not(feature = "hydrate"), allow(dead_code))]
     auth_store: AuthStore,
@@ -41,14 +41,22 @@ impl WorkspaceStore {
         self.workspaces.read_only()
     }
 
-    pub fn selected_workspace(&self) -> Memo<Option<WorkspaceSummary>> {
-        let list = self.workspaces();
-        let selected = self.selected_id;
-        Memo::new(move |_| {
-            let selected_id = selected.get();
-            list.get()
-                .into_iter()
-                .find(|workspace| Some(&workspace.id) == selected_id.as_ref())
+    pub fn selected_id(&self) -> ReadSignal<Option<String>> {
+        self.selected_id.read_only()
+    }
+
+    pub fn selected_workspace(&self) -> Signal<Option<WorkspaceSummary>> {
+        let workspaces = self.workspaces();
+        let selected_id = self.selected_id();
+        Signal::derive(move || {
+            let selected_id_value = selected_id.get();
+            if let Some(id) = selected_id_value.as_ref() {
+                workspaces.get()
+                    .into_iter()
+                    .find(|workspace| &workspace.id == id)
+            } else {
+                None
+            }
         })
     }
 
@@ -156,7 +164,17 @@ impl WorkspaceStore {
             Ok(summary)
         })
     }
+
+    pub fn update_workspace_in_store(&self, updated: WorkspaceSummary) {
+        self.workspaces.update(|workspaces| {
+            if let Some(ws) = workspaces.iter_mut().find(|w| w.id == updated.id) {
+                ws.name = updated.name.clone();
+            }
+        });
+    }
+
 }
+
 
 pub fn provide_workspace_store(auth_store: AuthStore) -> WorkspaceStore {
     let store = WorkspaceStore::new(auth_store);
@@ -248,3 +266,4 @@ async fn create_workspace_request(
         Err(format!("Impossible de créer le workspace (code {status})"))
     }
 }
+

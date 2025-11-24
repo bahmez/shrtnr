@@ -25,8 +25,8 @@ async fn main() {
     };
     use shrtnr::backend::workspaces::handlers::{
         add_workspace_member_handler, create_workspace_handler, delete_workspace_handler,
-        get_workspace_handler, list_workspaces_handler, remove_workspace_member_handler,
-        update_workspace_handler,
+        get_workspace_handler, list_workspace_members_handler, list_workspaces_handler,
+        remove_workspace_member_handler, update_workspace_handler,
     };
     use shrtnr::frontend::{shell, App};
 
@@ -81,7 +81,7 @@ async fn main() {
         .route("/api/workspaces/{id}", delete(delete_workspace_handler))
         .route(
             "/api/workspaces/{id}/members",
-            post(add_workspace_member_handler),
+            post(add_workspace_member_handler).get(list_workspace_members_handler),
         )
         .route(
             "/api/workspaces/{id}/members/{userId}",

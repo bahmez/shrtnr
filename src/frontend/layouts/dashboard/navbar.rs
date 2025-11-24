@@ -11,7 +11,7 @@ use leptos_router::hooks::use_navigate;
 #[cfg(feature = "hydrate")]
 use leptos_router::NavigateOptions;
 
-const NAV_LINKS: [(&str, &str); 3] = [("Links", "#"), ("Analytics", "#"), ("Settings", "#")];
+const NAV_LINKS: [(&str, &str); 3] = [("Links", "#"), ("Analytics", "#"), ("Settings", "/settings")];
 
 #[component]
 pub fn DashboardNavbar(
@@ -77,20 +77,33 @@ pub fn DashboardNavbar(
             .map(|ws| ws.name.clone())
             .unwrap_or_else(|| "Aucun workspace".to_string())
     });
-    let select_workspace = {
-        let workspace_store = workspace_store.clone();
-        let menu = project_menu_open.clone();
-        Callback::new(move |workspace_id: String| {
-            workspace_store.select_workspace(Some(workspace_id));
-            menu.set(false);
-        })
-    };
 
     let auth_store = use_auth_store();
     let user_signal = auth_store.user();
 
     #[cfg(feature = "hydrate")]
     let navigate = use_navigate();
+    
+    let select_workspace = {
+        let workspace_store = workspace_store.clone();
+        let menu = project_menu_open.clone();
+        #[cfg(feature = "hydrate")]
+        let navigate = navigate.clone();
+        Callback::new(move |workspace_id: String| {
+            workspace_store.select_workspace(Some(workspace_id.clone()));
+            menu.set(false);
+            #[cfg(feature = "hydrate")]
+            {
+                let _ = navigate(
+                    "/workspace",
+                    NavigateOptions {
+                        replace: false,
+                        ..Default::default()
+                    },
+                );
+            }
+        })
+    };
     #[cfg(feature = "hydrate")]
     let logout_action = {
         let auth_store = auth_store.clone();

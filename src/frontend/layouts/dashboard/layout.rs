@@ -2,7 +2,7 @@ use super::{
     footer::DashboardFooter, navbar::DashboardNavbar, settings_modal::SettingsModal,
     workspace_modal::WorkspaceModal,
 };
-use crate::frontend::state::{provide_workspace_store, use_auth_store};
+use crate::frontend::state::{use_auth_store, use_workspace_store};
 use leptos::prelude::*;
 #[cfg(feature = "hydrate")]
 use leptos_router::hooks::{use_location, use_navigate};
@@ -12,9 +12,9 @@ use leptos_router::NavigateOptions;
 #[component]
 pub fn DashboardLayout(children: ChildrenFn) -> impl IntoView {
     let auth_store = use_auth_store();
+    let workspace_store = use_workspace_store();
     let show_settings_modal = RwSignal::new(false);
     let show_workspace_modal = RwSignal::new(false);
-    let workspace_store = provide_workspace_store(auth_store.clone());
 
     let open_settings = {
         let show_settings_modal = show_settings_modal;
@@ -96,7 +96,7 @@ pub fn DashboardLayout(children: ChildrenFn) -> impl IntoView {
             >
                 <div class="flex min-h-screen flex-col bg-background text-foreground">
                     <DashboardNavbar
-                        on_open_settings=open_settings.clone()
+                        on_open_settings=open_settings
                         on_open_workspace_modal=Callback::new({
                             let show = show_workspace_modal.clone();
                             move |_| show.set(true)

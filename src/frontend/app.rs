@@ -1,5 +1,8 @@
-use crate::frontend::pages::{LandingPage, LayoutTestPage, LoginPage, RegisterPage};
-use crate::frontend::state::provide_auth_store;
+use crate::frontend::pages::{
+    AidePage, LandingPage, LayoutTestPage, LoginPage, RegisterPage, SettingsPage, StatusPage,
+    SupportPage, WorkspacePage,
+};
+use crate::frontend::state::{provide_auth_store, provide_workspace_store};
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::{
@@ -29,7 +32,8 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
-    provide_auth_store();
+    let auth_store = provide_auth_store();
+    provide_workspace_store(auth_store);
 
     view! {
         // injects a stylesheet into the document <head>
@@ -49,6 +53,11 @@ pub fn App() -> impl IntoView {
                     <Route path=StaticSegment("layout_test") view=LayoutTestPage/>
                     <Route path=StaticSegment("login") view=LoginPage/>
                     <Route path=StaticSegment("register") view=RegisterPage/>
+                    <Route path=StaticSegment("workspace") view=WorkspacePage/>
+                    <Route path=StaticSegment("settings") view=SettingsPage/>
+                    <Route path=StaticSegment("support") view=SupportPage/>
+                    <Route path=StaticSegment("status") view=StatusPage/>
+                    <Route path=StaticSegment("aide") view=AidePage/>
                 </Routes>
             </main>
         </Router>

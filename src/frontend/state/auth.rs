@@ -13,7 +13,7 @@ pub struct AuthTokens {
     pub refresh_token: String,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct AuthStore {
     user: RwSignal<Option<AuthUserDto>>,
     #[allow(dead_code)]

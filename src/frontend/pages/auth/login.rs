@@ -96,7 +96,7 @@ pub fn LoginPage() -> impl IntoView {
                                         value.starts_with('/').then(|| value.clone())
                                     })
                                 })
-                                .unwrap_or_else(|| "/layout_test".to_string());
+                                .unwrap_or_else(|| "/workspace".to_string());
 
                             if let Err(store_err) = auth_store.apply_auth_response(&response) {
                                 error.set(Some(store_err));
