@@ -1,6 +1,6 @@
 use crate::frontend::pages::{
-    AidePage, LandingPage, LayoutTestPage, LoginPage, RegisterPage, SettingsPage, StatusPage,
-    SupportPage, WorkspacePage,
+    AidePage, AnalyticsPage, LandingPage, LayoutTestPage, LinksPage, LoginPage, RegisterPage,
+    SettingsPage, StatusPage, SupportPage, WorkspacePage,
 };
 use crate::frontend::state::{provide_auth_store, provide_workspace_store};
 use leptos::prelude::*;
@@ -54,6 +54,8 @@ pub fn App() -> impl IntoView {
                     <Route path=StaticSegment("login") view=LoginPage/>
                     <Route path=StaticSegment("register") view=RegisterPage/>
                     <Route path=StaticSegment("workspace") view=WorkspacePage/>
+                    <Route path=StaticSegment("links") view=LinksPage/>
+                    <Route path=StaticSegment("analytics") view=AnalyticsPage/>
                     <Route path=StaticSegment("settings") view=SettingsPage/>
                     <Route path=StaticSegment("support") view=SupportPage/>
                     <Route path=StaticSegment("status") view=StatusPage/>

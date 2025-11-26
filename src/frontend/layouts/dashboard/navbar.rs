@@ -11,7 +11,7 @@ use leptos_router::hooks::use_navigate;
 #[cfg(feature = "hydrate")]
 use leptos_router::NavigateOptions;
 
-const NAV_LINKS: [(&str, &str); 3] = [("Links", "#"), ("Analytics", "#"), ("Settings", "/settings")];
+const NAV_LINKS: [(&str, &str); 3] = [("Links", "/links"), ("Analytics", "/analytics"), ("Settings", "/settings")];
 
 #[component]
 pub fn DashboardNavbar(

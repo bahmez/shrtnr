@@ -23,6 +23,11 @@ async fn main() {
     use shrtnr::backend::stats::handlers::{
         get_dashboard_stats_handler, get_link_stats_handler, get_workspace_stats_handler,
     };
+    use shrtnr::backend::analytics::handlers::{
+        get_analytics_overview_handler, get_clicks_by_date_handler,
+        get_device_breakdown_handler, get_geographic_breakdown_handler,
+        get_link_detailed_analytics_handler, get_referrer_breakdown_handler,
+    };
     use shrtnr::backend::workspaces::handlers::{
         add_workspace_member_handler, create_workspace_handler, delete_workspace_handler,
         get_workspace_handler, list_workspace_members_handler, list_workspaces_handler,
@@ -94,6 +99,13 @@ async fn main() {
             get(get_workspace_stats_handler),
         )
         .route("/api/stats/dashboard", get(get_dashboard_stats_handler))
+        // API Analytics routes
+        .route("/api/analytics/overview", get(get_analytics_overview_handler))
+        .route("/api/analytics/clicks-by-date", get(get_clicks_by_date_handler))
+        .route("/api/analytics/geographic", get(get_geographic_breakdown_handler))
+        .route("/api/analytics/referrers", get(get_referrer_breakdown_handler))
+        .route("/api/analytics/devices", get(get_device_breakdown_handler))
+        .route("/api/analytics/links/{id}", get(get_link_detailed_analytics_handler))
         // Public redirect route (must be before leptos_routes to catch short codes)
         .route("/{short_code}", get(redirect_handler))
         .layer(Extension(db))
