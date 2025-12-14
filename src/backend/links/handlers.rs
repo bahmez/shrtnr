@@ -418,7 +418,13 @@ pub async fn redirect_handler(
     Ok(Redirect::temporary(&link.original_url))
 }
 
+fn get_base_url() -> String {
+    std::env::var("SITE_URL")
+        .unwrap_or_else(|_| "http://localhost:3000".to_string())
+}
+
 fn link_to_response(link: crate::backend::entities::shortened_link::Model) -> LinkResponse {
+    let base_url = get_base_url();
     LinkResponse {
         id: link.id.to_string(),
         short_code: link.short_code.clone(),
@@ -429,7 +435,7 @@ fn link_to_response(link: crate::backend::entities::shortened_link::Model) -> Li
         created_at: link.created_at.map(|dt| dt.to_string()),
         expires_at: link.expires_at.map(|dt| dt.to_string()),
         is_active: link.is_active,
-        short_url: format!("http://localhost:3000/{}", link.short_code),
+        short_url: format!("{}/{}", base_url.trim_end_matches('/'), link.short_code),
     }
 }
 

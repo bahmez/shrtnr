@@ -8,8 +8,11 @@ use crate::frontend::{
 };
 use crate::frontend::pages::workspace::{LinkSummary, WorkspaceStats};
 use leptos::prelude::*;
+use leptos::ev;
 #[cfg(feature = "hydrate")]
 use leptos::task::spawn_local;
+#[cfg(feature = "hydrate")]
+use leptos_router::{hooks::use_navigate, NavigateOptions};
 #[cfg(feature = "hydrate")]
 use crate::frontend::state::use_auth_store;
 #[cfg(feature = "hydrate")]
@@ -34,6 +37,19 @@ pub fn WorkspacePage() -> impl IntoView {
     let links_loading = RwSignal::new(false);
     let links_error = RwSignal::new(Option::<String>::None);
 
+    #[cfg(feature = "hydrate")]
+    let navigate = use_navigate();
+    
+    #[cfg(feature = "hydrate")]
+    let create_link_on_click = {
+        let navigate = navigate.clone();
+        Callback::new(move |_event: ev::MouseEvent| {
+            let _ = navigate("/links", NavigateOptions::default());
+        })
+    };
+    #[cfg(not(feature = "hydrate"))]
+    let create_link_on_click = Callback::new(|_event: ev::MouseEvent| {});
+    
     #[cfg(feature = "hydrate")]
     {
         let auth_store = use_auth_store();
@@ -111,7 +127,10 @@ pub fn WorkspacePage() -> impl IntoView {
                     <Heading level=HeadingLevel::H1>
                         {move || workspace_label.get()}
                     </Heading>
-                    <Button variant=ButtonVariant::Primary>
+                    <Button 
+                        variant=ButtonVariant::Primary
+                        on_click=create_link_on_click
+                    >
                         "Créer un lien"
                     </Button>
                 </div>
