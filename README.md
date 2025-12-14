@@ -123,5 +123,5 @@ Quelques checks utiles :
 
 - [Leptos documentation](https://leptos.dev/)
 - [Cargo Leptos](https://github.com/leptos-rs/cargo-leptos)
-- Scripts migrations & Postman collection disponibles dans les dossiers `migrations/` et `postman/`.
+- Scripts migrations & Postman collection disponibles dans les dossiers `migrations/` et `postman/` !
 
