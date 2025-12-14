@@ -61,7 +61,7 @@ steps:
         "managed",
         "--allow-unauthenticated",
         "--set-env-vars",
-        "DATABASE_URL=$_DATABASE_URL,JWT_SECRET=$_JWT_SECRET",
+        "DATABASE_URL=$_DATABASE_URL,JWT_SECRET=$_JWT_SECRET,SITE_URL=$_SITE_URL",
       ]
 
 images:
@@ -76,6 +76,7 @@ substitutions:
   _CACHE_TAG: cache
   _DATABASE_URL: ""
   _JWT_SECRET: ""
+  _SITE_URL: ""
 
 options:
   substitution_option: ALLOW_LOOSE
