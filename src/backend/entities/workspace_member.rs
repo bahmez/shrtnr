@@ -1,6 +1,16 @@
+//! Entity WorkspaceMember pour la table `workspace_members`.
+//!
+//! Représente l'appartenance d'un utilisateur à un workspace avec un rôle spécifique.
+
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+/// Rôles disponibles pour les membres d'un workspace.
+///
+/// Les rôles déterminent les permissions d'accès et d'action dans un workspace :
+/// - `Owner` : Propriétaire du workspace (tous les droits)
+/// - `Admin` : Administrateur (peut gérer les membres et les liens)
+/// - `Member` : Membre standard (peut créer et gérer ses propres liens)
 #[derive(Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum, Serialize, Deserialize)]
 #[sea_orm(rs_type = "String", db_type = "String(Some(20))")]
 pub enum Role {

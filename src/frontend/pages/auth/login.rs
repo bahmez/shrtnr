@@ -1,3 +1,8 @@
+//! Page de connexion.
+//!
+//! Permet aux utilisateurs de se connecter avec leur email et mot de passe.
+//! Redirige vers le dashboard après une connexion réussie.
+
 #[cfg(feature = "hydrate")]
 use super::{post_login, LoginPayload};
 use crate::frontend::design_system::{
@@ -16,6 +21,11 @@ use leptos_router::hooks::{use_navigate, use_query_map};
 #[cfg(feature = "hydrate")]
 use leptos_router::NavigateOptions;
 
+/// Page de connexion de l'application.
+///
+/// Affiche un formulaire de connexion avec email et mot de passe.
+/// Après une connexion réussie, redirige vers le dashboard ou l'URL
+/// spécifiée dans le paramètre de requête `redirect`.
 #[component]
 pub fn LoginPage() -> impl IntoView {
     let email = RwSignal::new(String::new());

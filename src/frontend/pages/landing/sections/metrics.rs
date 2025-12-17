@@ -1,6 +1,14 @@
+//! Section des métriques de la landing page.
+//!
+//! Affiche les statistiques et métriques impressionnantes de la plateforme.
+
 use crate::frontend::design_system::{Card, CardBody, Heading, HeadingLevel, Text, TextTone};
 use leptos::prelude::*;
 
+/// Section des métriques de la landing page.
+///
+/// Affiche des statistiques clés (nombre de liens, CTR, performance)
+/// pour démontrer la valeur de la plateforme.
 #[component]
 pub fn MetricsSection() -> impl IntoView {
     let metrics = [

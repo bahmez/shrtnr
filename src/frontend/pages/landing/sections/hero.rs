@@ -1,9 +1,17 @@
+//! Section hero de la landing page.
+//!
+//! Section principale avec le titre, la description et les call-to-action.
+
 use crate::frontend::design_system::{
     Badge, BadgeVariant, Button, ButtonSize, ButtonVariant, Card, CardBody, CardHeader, Chip,
     Heading, HeadingLevel, Text, TextTone,
 };
 use leptos::prelude::*;
 
+/// Section hero de la landing page.
+///
+/// Affiche le titre principal, la description et les boutons d'action
+/// (inscription, connexion) pour attirer les visiteurs.
 #[component]
 pub fn HeroSection() -> impl IntoView {
     view! {

@@ -1,3 +1,12 @@
+//! Module client pour les appels API des paramètres.
+//!
+//! Fournit les fonctions pour interagir avec l'API de gestion des workspaces
+//! et membres côté client (WASM).
+//!
+//! # Note
+//!
+//! Ce module est uniquement disponible avec la feature `hydrate`.
+
 #[cfg(feature = "hydrate")]
 use gloo_net::http::Request;
 
@@ -41,6 +50,7 @@ struct AddWorkspaceMemberPayload {
     role: String,
 }
 
+/// Réponse représentant un membre de workspace.
 #[cfg(feature = "hydrate")]
 #[derive(serde::Deserialize)]
 pub struct WorkspaceMemberResponse {
@@ -56,6 +66,7 @@ struct AddWorkspaceMemberResponse {
     member: WorkspaceMemberResponse,
 }
 
+/// Réponse représentant un membre de workspace avec les informations utilisateur.
 #[cfg(feature = "hydrate")]
 #[derive(Clone, serde::Deserialize)]
 pub struct WorkspaceMemberWithUserResponse {
@@ -73,6 +84,18 @@ struct ListWorkspaceMembersResponse {
     members: Vec<WorkspaceMemberWithUserResponse>,
 }
 
+/// Met à jour un workspace.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+/// * `name` - Nouveau nom (optionnel)
+///
+/// # Returns
+///
+/// * `Ok(WorkspaceSummary)` - Workspace mis à jour
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn update_workspace(
     workspace_id: &str,
@@ -113,6 +136,20 @@ pub async fn update_workspace(
     }
 }
 
+/// Ajoute un membre à un workspace.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+/// * `email` - Email du membre (optionnel, si user_id n'est pas fourni)
+/// * `user_id` - ID de l'utilisateur (optionnel, si email n'est pas fourni)
+/// * `role` - Rôle du membre ("owner", "admin", "member")
+///
+/// # Returns
+///
+/// * `Ok(WorkspaceMemberResponse)` - Membre ajouté
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn add_workspace_member(
     workspace_id: &str,
@@ -155,6 +192,17 @@ pub async fn add_workspace_member(
     }
 }
 
+/// Liste tous les membres d'un workspace.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+///
+/// # Returns
+///
+/// * `Ok(Vec<WorkspaceMemberWithUserResponse>)` - Liste des membres
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn list_workspace_members(
     workspace_id: &str,
@@ -186,6 +234,18 @@ pub async fn list_workspace_members(
     }
 }
 
+/// Retire un membre d'un workspace.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+/// * `user_id` - ID de l'utilisateur à retirer
+///
+/// # Returns
+///
+/// * `Ok(())` - Membre retiré avec succès
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn remove_workspace_member(
     workspace_id: &str,

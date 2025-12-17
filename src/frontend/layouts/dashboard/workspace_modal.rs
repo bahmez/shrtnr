@@ -1,3 +1,7 @@
+//! Modal de création de workspace.
+//!
+//! Permet aux utilisateurs de créer un nouveau workspace avec un nom personnalisé.
+
 use crate::frontend::{
     design_system::{Button, ButtonSize, ButtonVariant, FormControl, InputField, Text, TextTone},
     state::{use_auth_store, use_workspace_store},
@@ -7,6 +11,16 @@ use leptos::prelude::*;
 #[cfg(feature = "hydrate")]
 use leptos::task::spawn_local;
 
+/// Modal pour créer un nouveau workspace.
+///
+/// Affiche un formulaire permettant de :
+/// - Saisir le nom du workspace
+/// - Créer le workspace via l'API
+/// - Afficher les erreurs ou messages de succès
+///
+/// # Arguments
+///
+/// * `open` - Signal contrôlant l'ouverture/fermeture du modal
 #[component]
 pub fn WorkspaceModal(open: RwSignal<bool>) -> impl IntoView {
     #[allow(unused_variables)]

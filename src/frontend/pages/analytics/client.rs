@@ -1,3 +1,12 @@
+//! Module client pour les appels API des analytics.
+//!
+//! Fournit les fonctions pour interagir avec l'API d'analytics
+//! côté client (WASM).
+//!
+//! # Note
+//!
+//! Ce module est uniquement disponible avec la feature `hydrate`.
+
 #[cfg(feature = "hydrate")]
 use super::{
     AnalyticsOverview, ClicksByDate, DateClickCount, DeviceBreakdown, DeviceStat,
@@ -104,6 +113,19 @@ struct ApiErrorResponse {
     error: String,
 }
 
+/// Récupère la vue d'ensemble des analytics d'un workspace.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+/// * `start_date` - Date de début optionnelle (format YYYY-MM-DD)
+/// * `end_date` - Date de fin optionnelle (format YYYY-MM-DD)
+///
+/// # Returns
+///
+/// * `Ok(AnalyticsOverview)` - Vue d'ensemble des analytics
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_analytics_overview(
     workspace_id: &str,
@@ -159,6 +181,19 @@ pub async fn fetch_analytics_overview(
     }
 }
 
+/// Récupère les clics agrégés par date.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+/// * `start_date` - Date de début optionnelle (format YYYY-MM-DD)
+/// * `end_date` - Date de fin optionnelle (format YYYY-MM-DD)
+///
+/// # Returns
+///
+/// * `Ok(ClicksByDate)` - Clics agrégés par date
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_clicks_by_date(
     workspace_id: &str,
@@ -207,6 +242,17 @@ pub async fn fetch_clicks_by_date(
     }
 }
 
+/// Récupère le breakdown géographique (pays et villes).
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+///
+/// # Returns
+///
+/// * `Ok(GeographicBreakdown)` - Breakdown géographique
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_geographic_breakdown(
     workspace_id: &str,
@@ -257,6 +303,17 @@ pub async fn fetch_geographic_breakdown(
     }
 }
 
+/// Récupère le breakdown par referrer (sources de trafic).
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+///
+/// # Returns
+///
+/// * `Ok(ReferrerBreakdown)` - Breakdown par referrer
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_referrer_breakdown(
     workspace_id: &str,
@@ -298,6 +355,17 @@ pub async fn fetch_referrer_breakdown(
     }
 }
 
+/// Récupère le breakdown par device (navigateurs et appareils).
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+///
+/// # Returns
+///
+/// * `Ok(DeviceBreakdown)` - Breakdown par device
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_device_breakdown(
     workspace_id: &str,
@@ -348,6 +416,19 @@ pub async fn fetch_device_breakdown(
     }
 }
 
+/// Récupère les analytics détaillés d'un lien spécifique.
+///
+/// # Arguments
+///
+/// * `link_id` - ID du lien
+/// * `token` - Token d'accès JWT
+/// * `start_date` - Date de début optionnelle (format YYYY-MM-DD)
+/// * `end_date` - Date de fin optionnelle (format YYYY-MM-DD)
+///
+/// # Returns
+///
+/// * `Ok(LinkDetailedAnalytics)` - Analytics détaillés du lien
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_link_analytics(
     link_id: &str,

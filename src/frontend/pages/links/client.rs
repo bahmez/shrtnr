@@ -1,3 +1,12 @@
+//! Module client pour les appels API des liens.
+//!
+//! Fournit les fonctions pour interagir avec l'API de gestion des liens
+//! côté client (WASM).
+//!
+//! # Note
+//!
+//! Ce module est uniquement disponible avec la feature `hydrate`.
+
 #[cfg(feature = "hydrate")]
 use super::LinkItem;
 #[cfg(feature = "hydrate")]
@@ -37,6 +46,7 @@ struct ApiErrorResponse {
 
 #[cfg(feature = "hydrate")]
 #[derive(Clone, Debug)]
+/// Données de liste de liens avec pagination.
 pub struct LinkListData {
     pub links: Vec<LinkItem>,
     pub total: usize,
@@ -44,6 +54,7 @@ pub struct LinkListData {
     pub limit: u64,
 }
 
+/// Détails complets d'un lien raccourci.
 #[cfg(feature = "hydrate")]
 #[derive(Clone, Debug)]
 pub struct LinkDetail {
@@ -83,6 +94,19 @@ struct UpdateLinkPayload {
     is_active: Option<bool>,
 }
 
+/// Récupère la liste des liens d'un workspace avec pagination.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+/// * `page` - Numéro de page (commence à 1)
+/// * `limit` - Nombre de liens par page
+///
+/// # Returns
+///
+/// * `Ok(LinkListData)` - Liste paginée des liens
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_links(
     workspace_id: &str,
@@ -138,6 +162,21 @@ pub async fn fetch_links(
     }
 }
 
+/// Crée un nouveau lien raccourci.
+///
+/// # Arguments
+///
+/// * `token` - Token d'accès JWT
+/// * `original_url` - URL originale à raccourcir
+/// * `workspace_id` - ID du workspace
+/// * `title` - Titre optionnel du lien
+/// * `custom_code` - Code personnalisé optionnel (doit être unique)
+/// * `expires_at` - Date d'expiration optionnelle (format ISO 8601)
+///
+/// # Returns
+///
+/// * `Ok(LinkDetail)` - Le lien créé
+/// * `Err(String)` - En cas d'erreur (code déjà utilisé, URL invalide, etc.)
 #[cfg(feature = "hydrate")]
 pub async fn create_link(
     token: &str,
@@ -193,6 +232,20 @@ pub async fn create_link(
     }
 }
 
+/// Met à jour un lien raccourci existant.
+///
+/// # Arguments
+///
+/// * `token` - Token d'accès JWT
+/// * `link_id` - ID du lien à mettre à jour
+/// * `title` - Nouveau titre (optionnel)
+/// * `original_url` - Nouvelle URL originale (optionnel)
+/// * `is_active` - Nouvel état actif/inactif (optionnel)
+///
+/// # Returns
+///
+/// * `Ok(LinkDetail)` - Le lien mis à jour
+/// * `Err(String)` - En cas d'erreur (lien introuvable, pas de permission, etc.)
 #[cfg(feature = "hydrate")]
 pub async fn update_link(
     token: &str,

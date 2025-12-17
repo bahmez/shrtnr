@@ -1,3 +1,9 @@
+//! Middleware d'authentification pour Axum.
+//!
+//! Ce module fournit l'extracteur `AuthUser` qui peut être utilisé
+//! dans les handlers pour protéger les routes et obtenir l'utilisateur
+//! authentifié automatiquement.
+
 use axum::{
     extract::{Extension, FromRequestParts},
     http::{request::Parts, StatusCode},
@@ -13,17 +19,44 @@ use uuid::Uuid;
 
 use crate::backend::{auth::verify_access_token, config::AppState};
 
-/// Structure représentant un utilisateur authentifié
-/// Cette structure peut être utilisée comme extracteur dans les handlers
-/// It also carries the AppState to avoid double extraction conflicts
+/// Structure représentant un utilisateur authentifié.
+///
+/// Cette structure peut être utilisée comme extracteur dans les handlers Axum
+/// pour protéger les routes et obtenir automatiquement l'ID de l'utilisateur
+/// authentifié ainsi que l'état de l'application.
+///
+/// # Utilisation
+///
+/// Utilisez `AuthUser` comme paramètre dans vos handlers pour protéger une route :
+///
+/// ```rust,no_run
+/// use axum::Json;
+/// use shrtnr::backend::middleware::AuthUser;
+///
+/// pub async fn protected_handler(auth_user: AuthUser) -> Json<String> {
+///     Json(format!("User ID: {}", auth_user.user_id))
+/// }
+/// ```
+///
+/// Si le token est invalide ou manquant, une erreur 401 Unauthorized
+/// sera automatiquement renvoyée.
+///
+/// # Note
+///
+/// Cette structure contient également `AppState` pour éviter les conflits
+/// lors de l'extraction multiple dans les handlers.
 #[derive(Debug, Clone)]
 pub struct AuthUser {
+    /// ID de l'utilisateur authentifié (extrait du token JWT)
     pub user_id: Uuid,
+    /// État de l'application (connexion DB, config JWT, etc.)
     pub state: AppState,
 }
 
+/// Erreur d'authentification renvoyée lorsque la validation du token échoue.
 #[derive(Debug, Serialize)]
 pub struct AuthError {
+    /// Message d'erreur descriptif
     pub error: String,
 }
 
@@ -33,8 +66,17 @@ impl IntoResponse for AuthError {
     }
 }
 
-/// Implémentation de FromRequestParts pour AuthUser
-/// Cela permet d'utiliser AuthUser comme extracteur dans les handlers
+/// Implémentation de `FromRequestParts` pour `AuthUser`.
+///
+/// Cette implémentation permet d'utiliser `AuthUser` comme extracteur
+/// dans les handlers Axum. Elle :
+/// 1. Extrait le header `Authorization: Bearer <token>`
+/// 2. Vérifie et valide le token JWT
+/// 3. Extrait l'ID utilisateur du token
+/// 4. Retourne `AuthUser` avec l'état de l'application
+///
+/// Si l'une de ces étapes échoue, une `AuthError` est renvoyée
+/// qui sera automatiquement convertie en réponse HTTP 401.
 impl<S> FromRequestParts<S> for AuthUser
 where
     S: Send + Sync,

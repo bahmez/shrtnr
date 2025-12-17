@@ -1,3 +1,7 @@
+//! Page d'inscription.
+//!
+//! Permet aux nouveaux utilisateurs de créer un compte avec email, mot de passe et nom.
+
 #[cfg(feature = "hydrate")]
 use super::{post_register, RegisterPayload};
 use crate::frontend::design_system::{
@@ -16,6 +20,10 @@ use leptos_router::hooks::{use_navigate, use_query_map};
 #[cfg(feature = "hydrate")]
 use leptos_router::NavigateOptions;
 
+/// Page d'inscription de l'application.
+///
+/// Affiche un formulaire d'inscription avec email, mot de passe et nom (optionnel).
+/// Après une inscription réussie, redirige vers le dashboard.
 #[component]
 pub fn RegisterPage() -> impl IntoView {
     let name = RwSignal::new(String::new());

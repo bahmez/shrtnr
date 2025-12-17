@@ -1,3 +1,8 @@
+//! Point d'entrée de l'application frontend Leptos.
+//!
+//! Ce module définit la structure HTML de base et configure le router
+//! pour toutes les pages de l'application.
+
 use crate::frontend::pages::{
     AidePage, AnalyticsPage, LandingPage, LayoutTestPage, LinksPage, LoginPage, RegisterPage,
     SettingsPage, StatusPage, SupportPage, WorkspacePage,
@@ -10,6 +15,17 @@ use leptos_router::{
     StaticSegment,
 };
 
+/// Fonction shell qui génère le HTML de base de l'application.
+///
+/// Cette fonction est utilisée par Leptos pour générer le document HTML
+/// lors du rendu côté serveur. Elle inclut :
+/// - Les meta tags et le viewport
+/// - Les scripts d'hydratation
+/// - Le composant App principal
+///
+/// # Arguments
+///
+/// * `options` - Options de configuration Leptos (adresse, features, etc.)
 pub fn shell(options: LeptosOptions) -> impl IntoView {
     view! {
         <!DOCTYPE html>
@@ -28,6 +44,23 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
     }
 }
 
+/// Composant racine de l'application.
+///
+/// Ce composant :
+/// - Configure le contexte meta (stylesheets, titles, etc.)
+/// - Initialise les stores d'état (auth, workspaces)
+/// - Configure le router avec toutes les routes de l'application
+///
+/// ## Routes disponibles
+///
+/// - `/` : Page d'accueil (landing page)
+/// - `/login` : Page de connexion
+/// - `/register` : Page d'inscription
+/// - `/workspace` : Gestion des workspaces
+/// - `/links` : Gestion des liens raccourcis
+/// - `/analytics` : Analytics et statistiques
+/// - `/settings` : Paramètres utilisateur
+/// - `/support`, `/status`, `/aide` : Pages d'information
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.

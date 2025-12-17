@@ -1,3 +1,8 @@
+//! Composant Navigation pour la page d'accueil.
+//!
+//! Affiche la barre de navigation principale avec le logo, les liens de navigation
+//! et les boutons d'action (connexion, inscription).
+
 use crate::frontend::design_system::{
     Button, ButtonSize, ButtonVariant, Heading, HeadingLevel, Text, TextTone,
 };
@@ -5,6 +10,15 @@ use leptos::{ev, prelude::*};
 #[cfg(feature = "hydrate")]
 use leptos_router::{hooks::use_navigate, NavigateOptions};
 
+/// Composant Navigation de l'application.
+///
+/// Affiche :
+/// - Logo et nom de l'application
+/// - Liens de navigation (Fonctionnalités, Flux, Témoignages, Tarifs)
+/// - Boutons d'action (Se connecter, Commencer)
+///
+/// La navigation est sticky (reste visible lors du scroll) et utilise
+/// un backdrop blur pour un effet moderne.
 #[component]
 pub fn Navigation() -> impl IntoView {
     #[cfg(feature = "hydrate")]

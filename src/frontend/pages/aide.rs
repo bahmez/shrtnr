@@ -1,9 +1,16 @@
+//! Page d'aide et FAQ.
+//!
+//! Affiche les questions fréquentes et les réponses pour aider les utilisateurs.
+
 use crate::frontend::design_system::{
     Card, CardBody, Heading, HeadingLevel, Text, TextTone,
 };
 use crate::frontend::layouts::DashboardLayout;
 use leptos::prelude::*;
 
+/// Page d'aide de l'application.
+///
+/// Affiche une liste de questions fréquentes avec des réponses dépliables.
 #[component]
 pub fn AidePage() -> impl IntoView {
     view! {
@@ -76,6 +83,14 @@ pub fn AidePage() -> impl IntoView {
     }
 }
 
+/// Composant pour un item de FAQ (question/réponse).
+///
+/// Affiche une question avec une réponse dépliable au clic.
+///
+/// # Arguments
+///
+/// * `question` - La question à afficher
+/// * `answer` - La réponse à afficher quand l'item est déplié
 #[component]
 fn FaqItem(
     question: &'static str,

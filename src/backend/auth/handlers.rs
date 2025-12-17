@@ -1,3 +1,12 @@
+//! Handlers API pour l'authentification et la gestion des utilisateurs.
+//!
+//! Ce module contient tous les handlers Axum pour les endpoints d'authentification :
+//! - Inscription de nouveaux utilisateurs
+//! - Connexion et génération de tokens JWT
+//! - Rafraîchissement des tokens
+//! - Récupération et mise à jour du profil utilisateur
+//! - Déconnexion
+
 use axum::{extract::Extension, http::StatusCode, Json};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -8,47 +17,105 @@ use crate::shared::responses::{ApiError, ApiMessage};
 
 // ===== Request/Response Types =====
 
+/// Requête pour l'inscription d'un nouvel utilisateur.
+///
+/// Tous les champs sont requis sauf `name` qui est optionnel.
 #[derive(Debug, Deserialize)]
 pub struct RegisterRequest {
+    /// Adresse email de l'utilisateur (doit être unique dans le système)
     pub email: String,
+    /// Mot de passe en clair (sera hashé avec bcrypt avant stockage)
     pub password: String,
+    /// Nom complet de l'utilisateur (optionnel)
     pub name: Option<String>,
 }
 
+/// Requête pour la connexion d'un utilisateur existant.
 #[derive(Debug, Deserialize)]
 pub struct LoginRequest {
+    /// Adresse email de l'utilisateur
     pub email: String,
+    /// Mot de passe en clair (sera comparé avec le hash stocké)
     pub password: String,
 }
 
+/// Requête pour rafraîchir un token d'accès expiré.
 #[derive(Debug, Deserialize)]
 pub struct RefreshTokenRequest {
+    /// Token de rafraîchissement valide
     pub refresh_token: String,
 }
 
+/// Requête pour mettre à jour le profil utilisateur.
 #[derive(Debug, Deserialize)]
 pub struct UpdateProfileRequest {
+    /// Nouveau nom de l'utilisateur (optionnel, laisse inchangé si `None`)
     pub name: Option<String>,
+    /// Nouvelle adresse email (optionnel, doit être unique si fourni)
     pub email: Option<String>,
 }
 
+/// Réponse d'authentification contenant les informations utilisateur et les tokens JWT.
 #[derive(Debug, Serialize)]
 pub struct AuthResponse {
+    /// Informations de l'utilisateur authentifié
     pub user: UserResponse,
+    /// Token JWT d'accès (durée de vie : 15 minutes)
     pub access_token: String,
+    /// Token JWT de rafraîchissement (durée de vie : 7 jours)
     pub refresh_token: String,
 }
 
+/// Réponse contenant les informations d'un utilisateur.
 #[derive(Debug, Serialize)]
 pub struct UserResponse {
+    /// Identifiant unique de l'utilisateur (UUID)
     pub id: String,
+    /// Adresse email de l'utilisateur
     pub email: String,
+    /// Nom complet de l'utilisateur (peut être `None`)
     pub name: Option<String>,
+    /// Date de création du compte (format ISO 8601, peut être `None`)
     pub created_at: Option<String>,
 }
 
 // ===== Handlers =====
 
+/// Handler pour l'inscription d'un nouvel utilisateur.
+///
+/// Crée un compte utilisateur avec un email et un mot de passe hashé,
+/// puis génère une paire de tokens JWT (access et refresh) pour l'authentification.
+///
+/// # Endpoint
+///
+/// `POST /api/auth/register`
+///
+/// # Arguments
+///
+/// * `state` - L'état de l'application contenant la connexion DB et la config JWT
+/// * `payload` - Les données d'inscription (email, password, name optionnel)
+///
+/// # Returns
+///
+/// Retourne une `AuthResponse` contenant :
+/// - Les informations de l'utilisateur créé
+/// - Un access token JWT (valide 15 minutes)
+/// - Un refresh token JWT (valide 7 jours)
+///
+/// # Errors
+///
+/// * `409 Conflict` - Si l'email est déjà utilisé
+/// * `500 Internal Server Error` - En cas d'erreur de hashage, création en DB, ou génération de tokens
+///
+/// # Exemple de requête
+///
+/// ```json
+/// {
+///   "email": "user@example.com",
+///   "password": "securepassword123",
+///   "name": "John Doe"
+/// }
+/// ```
 pub async fn register_handler(
     Extension(state): Extension<AppState>,
     Json(payload): Json<RegisterRequest>,
@@ -99,6 +166,33 @@ pub async fn register_handler(
     }))
 }
 
+/// Handler pour la connexion d'un utilisateur existant.
+///
+/// Authentifie un utilisateur avec son email et mot de passe, puis génère
+/// une paire de tokens JWT si les credentials sont valides.
+///
+/// # Endpoint
+///
+/// `POST /api/auth/login`
+///
+/// # Arguments
+///
+/// * `state` - L'état de l'application
+/// * `payload` - Les credentials de connexion (email et password)
+///
+/// # Returns
+///
+/// Retourne une `AuthResponse` avec les tokens JWT et les infos utilisateur.
+///
+/// # Errors
+///
+/// * `401 Unauthorized` - Si l'email n'existe pas ou si le mot de passe est incorrect
+/// * `500 Internal Server Error` - En cas d'erreur de base de données ou de génération de tokens
+///
+/// # Sécurité
+///
+/// Pour des raisons de sécurité, le message d'erreur est générique ("Invalid credentials")
+/// même si l'email n'existe pas, pour éviter l'énumération d'emails.
 pub async fn login_handler(
     Extension(state): Extension<AppState>,
     Json(payload): Json<LoginRequest>,
@@ -154,6 +248,24 @@ pub async fn login_handler(
     }))
 }
 
+/// Handler pour la déconnexion d'un utilisateur.
+///
+/// Dans une implémentation JWT stateless, le logout est généralement géré côté client
+/// en supprimant les tokens du localStorage. Ce handler retourne simplement un message
+/// de confirmation.
+///
+/// # Endpoint
+///
+/// `POST /api/auth/logout`
+///
+/// # Returns
+///
+/// Un message de confirmation de déconnexion.
+///
+/// # Note
+///
+/// Pour une invalidation côté serveur, il faudrait implémenter une blacklist de tokens
+/// ou un système de révocation. Actuellement, les tokens restent valides jusqu'à leur expiration.
 pub async fn logout_handler() -> Json<ApiMessage> {
     // Dans une implémentation JWT stateless, le logout est généralement géré côté client
     // en supprimant les tokens. Pour une invalidation côté serveur, vous auriez besoin
@@ -161,6 +273,28 @@ pub async fn logout_handler() -> Json<ApiMessage> {
     Json(ApiMessage::new("Logged out successfully"))
 }
 
+/// Handler pour rafraîchir un token d'accès expiré.
+///
+/// Utilise un refresh token valide pour générer une nouvelle paire de tokens
+/// (access et refresh) sans nécessiter de nouvelles credentials.
+///
+/// # Endpoint
+///
+/// `POST /api/auth/refresh-token`
+///
+/// # Arguments
+///
+/// * `state` - L'état de l'application
+/// * `payload` - Le refresh token à utiliser
+///
+/// # Returns
+///
+/// Retourne une nouvelle `AuthResponse` avec de nouveaux tokens JWT.
+///
+/// # Errors
+///
+/// * `401 Unauthorized` - Si le refresh token est invalide ou expiré
+/// * `500 Internal Server Error` - En cas d'erreur de base de données ou de génération de tokens
 pub async fn refresh_token_handler(
     Extension(state): Extension<AppState>,
     Json(payload): Json<RefreshTokenRequest>,
@@ -216,6 +350,28 @@ pub async fn refresh_token_handler(
     }))
 }
 
+/// Handler pour récupérer les informations de l'utilisateur authentifié.
+///
+/// Retourne les informations du profil de l'utilisateur actuellement authentifié,
+/// identifié via le token JWT dans le header Authorization.
+///
+/// # Endpoint
+///
+/// `GET /api/auth/me`
+///
+/// # Arguments
+///
+/// * `auth_user` - L'utilisateur authentifié (extrait automatiquement du token JWT)
+///
+/// # Returns
+///
+/// Les informations de l'utilisateur authentifié.
+///
+/// # Errors
+///
+/// * `401 Unauthorized` - Si le token est invalide ou manquant (géré par `AuthUser`)
+/// * `404 Not Found` - Si l'utilisateur n'existe plus en base de données
+/// * `500 Internal Server Error` - En cas d'erreur de base de données
 pub async fn me_handler(
     auth_user: AuthUser,
 ) -> Result<Json<UserResponse>, (StatusCode, Json<ApiError>)> {
@@ -238,6 +394,29 @@ pub async fn me_handler(
     }))
 }
 
+/// Handler pour mettre à jour le profil de l'utilisateur authentifié.
+///
+/// Permet de modifier le nom et/ou l'email de l'utilisateur. L'email doit être unique
+/// s'il est fourni.
+///
+/// # Endpoint
+///
+/// `PUT /api/auth/profile`
+///
+/// # Arguments
+///
+/// * `auth_user` - L'utilisateur authentifié
+/// * `payload` - Les champs à mettre à jour (name et/ou email, optionnels)
+///
+/// # Returns
+///
+/// Les informations mises à jour de l'utilisateur.
+///
+/// # Errors
+///
+/// * `401 Unauthorized` - Si le token est invalide ou manquant (géré par `AuthUser`)
+/// * `409 Conflict` - Si le nouvel email est déjà utilisé par un autre utilisateur
+/// * `500 Internal Server Error` - En cas d'erreur de base de données
 pub async fn update_profile_handler(
     auth_user: AuthUser,
     Json(payload): Json<UpdateProfileRequest>,

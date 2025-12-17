@@ -1,12 +1,23 @@
+//! Composant Heading du design system.
+//!
+//! Fournit un composant de titre avec différents niveaux (H1-H6) et styles cohérents.
+
 use leptos::prelude::*;
 
+/// Niveaux de titre disponibles (H1 à H6).
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HeadingLevel {
+    /// Titre principal (plus grand)
     H1,
+    /// Titre de section (défaut)
     H2,
+    /// Sous-titre
     H3,
+    /// Titre de sous-section
     H4,
+    /// Titre mineur
     H5,
+    /// Titre minimal
     H6,
 }
 
@@ -27,6 +38,15 @@ impl HeadingLevel {
     }
 }
 
+/// Composant Heading pour les titres avec niveaux sémantiques.
+///
+/// Génère automatiquement le bon élément HTML (h1-h6) selon le niveau.
+///
+/// # Props
+///
+/// * `level` - Niveau du titre (H1-H6, défaut: H2)
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `children` - Texte du titre
 #[component]
 pub fn Heading(
     #[prop(default = HeadingLevel::H2)] level: HeadingLevel,

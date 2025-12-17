@@ -1,3 +1,12 @@
+//! Module client pour les appels API des workspaces.
+//!
+//! Fournit les fonctions pour interagir avec l'API de gestion des workspaces
+//! côté client (WASM).
+//!
+//! # Note
+//!
+//! Ce module est uniquement disponible avec la feature `hydrate`.
+
 #[cfg(feature = "hydrate")]
 use super::{LinkSummary, WorkspaceStats};
 #[cfg(feature = "hydrate")]
@@ -11,6 +20,17 @@ struct WorkspaceStatsResponse {
     total_clicks: u64,
 }
 
+/// Récupère les statistiques d'un workspace.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+///
+/// # Returns
+///
+/// * `Ok(WorkspaceStats)` - Statistiques du workspace
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_workspace_stats(
     workspace_id: &str,
@@ -67,6 +87,18 @@ struct LinkListResponse {
     limit: u64,
 }
 
+/// Récupère les liens récents d'un workspace.
+///
+/// # Arguments
+///
+/// * `workspace_id` - ID du workspace
+/// * `token` - Token d'accès JWT
+/// * `limit` - Nombre maximum de liens à retourner
+///
+/// # Returns
+///
+/// * `Ok(Vec<LinkSummary>)` - Liste des liens récents
+/// * `Err(String)` - En cas d'erreur
 #[cfg(feature = "hydrate")]
 pub async fn fetch_recent_links(
     workspace_id: &str,

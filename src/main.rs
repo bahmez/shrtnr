@@ -1,5 +1,16 @@
 #![recursion_limit = "2048"]
 
+//! Point d'entrée principal du serveur shrtnr.
+//!
+//! Ce fichier configure et démarre le serveur Axum avec :
+//! - Les routes API REST pour l'authentification, les liens, workspaces, analytics
+//! - Le serveur Leptos pour le rendu SSR et la livraison du frontend
+//! - La connexion à la base de données (SQLite ou PostgreSQL)
+//! - La configuration JWT pour l'authentification
+//!
+//! Le serveur écoute sur l'adresse configurée dans `cargo-leptos.toml`
+//! (par défaut `127.0.0.1:3000`).
+
 #[cfg(feature = "ssr")]
 #[tokio::main]
 async fn main() {

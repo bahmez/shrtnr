@@ -1,8 +1,16 @@
+//! Section workflow de la landing page.
+//!
+//! Présente le processus d'utilisation de la plateforme étape par étape.
+
 use crate::frontend::design_system::{
     Badge, BadgeVariant, Card, CardBody, CardHeader, Heading, HeadingLevel, Text, TextTone,
 };
 use leptos::prelude::*;
 
+/// Section workflow de la landing page.
+///
+/// Explique le processus d'utilisation de la plateforme en plusieurs étapes
+/// pour montrer la simplicité d'utilisation.
 #[component]
 pub fn WorkflowSection() -> impl IntoView {
     struct Step<'a> {

@@ -1,6 +1,22 @@
+//! Composant Chip du design system.
+//!
+//! Fournit un composant chip pour afficher des tags ou filtres avec possibilité
+//! de suppression.
+
 use leptos::ev;
 use leptos::prelude::*;
 
+/// Composant Chip pour afficher des tags ou filtres.
+///
+/// Supporte une icône de début et un bouton de suppression optionnel.
+///
+/// # Props
+///
+/// * `leading_icon` - Icône affichée avant le texte (optionnel)
+/// * `removable` - Affiche un bouton de suppression si `true`
+/// * `on_remove` - Callback appelé lors de la suppression (optionnel)
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `children` - Contenu du chip (texte)
 #[component]
 pub fn Chip(
     #[prop(optional)] leading_icon: Option<AnyView>,

@@ -21,6 +21,30 @@ pub struct LinkStatsResponse {
     pub total_clicks: u64,
 }
 
+/// Handler pour obtenir les statistiques d'un lien spécifique.
+///
+/// Retourne le nombre total de clics pour un lien donné.
+///
+/// # Endpoint
+///
+/// `GET /api/links/{link_id}/stats`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `link_id` - UUID du lien
+///
+/// # Returns
+///
+/// Statistiques du lien (total de clics).
+///
+/// # Errors
+///
+/// * `400 Bad Request` - link_id invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace du lien
+/// * `404 Not Found` - Lien ou workspace introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_link_stats_handler(
     auth_user: AuthUser,
     Path(link_id): Path<String>,
@@ -115,6 +139,30 @@ pub struct WorkspaceStatsResponse {
     pub total_clicks: u64,
 }
 
+/// Handler pour obtenir les statistiques d'un workspace.
+///
+/// Retourne le nombre total de liens et le nombre total de clics pour un workspace.
+///
+/// # Endpoint
+///
+/// `GET /api/workspaces/{workspace_id}/stats`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `workspace_id` - UUID du workspace
+///
+/// # Returns
+///
+/// Statistiques du workspace (total_links, total_clicks).
+///
+/// # Errors
+///
+/// * `400 Bad Request` - workspace_id invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace
+/// * `404 Not Found` - Workspace introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_workspace_stats_handler(
     auth_user: AuthUser,
     Path(workspace_id): Path<String>,
@@ -210,6 +258,27 @@ pub struct DashboardStatsResponse {
     pub total_clicks: u64,
 }
 
+/// Handler pour obtenir les statistiques globales du dashboard.
+///
+/// Retourne les statistiques agrégées de tous les workspaces de l'utilisateur :
+/// nombre total de workspaces, de liens, et de clics.
+///
+/// # Endpoint
+///
+/// `GET /api/stats/dashboard`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+///
+/// # Returns
+///
+/// Statistiques globales du dashboard (total_workspaces, total_links, total_clicks).
+///
+/// # Errors
+///
+/// * `401 Unauthorized` - Token invalide
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_dashboard_stats_handler(
     auth_user: AuthUser,
 ) -> Result<Json<DashboardStatsResponse>, (StatusCode, Json<ErrorResponse>)> {

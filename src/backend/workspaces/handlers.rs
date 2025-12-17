@@ -121,6 +121,27 @@ pub struct ListWorkspaceMembersResponse {
 
 // ===== Handlers =====
 
+/// Handler pour créer un nouveau workspace.
+///
+/// # Endpoint
+///
+/// `POST /api/workspaces`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `payload` - Données du workspace à créer (name, owner_id)
+///
+/// # Returns
+///
+/// Le workspace créé avec son ID généré.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - owner_id invalide (UUID attendu)
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - owner_id ne correspond pas à l'utilisateur authentifié
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn create_workspace_handler(
     auth_user: AuthUser,
     Json(payload): Json<CreateWorkspaceRequest>,
@@ -165,6 +186,26 @@ pub async fn create_workspace_handler(
     Ok(Json(response))
 }
 
+/// Handler pour lister les workspaces de l'utilisateur authentifié.
+///
+/// Retourne tous les workspaces dont l'utilisateur est membre (owner, admin, ou member).
+///
+/// # Endpoint
+///
+/// `GET /api/workspaces`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+///
+/// # Returns
+///
+/// Liste de tous les workspaces accessibles par l'utilisateur.
+///
+/// # Errors
+///
+/// * `401 Unauthorized` - Token invalide
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn list_workspaces_handler(
     auth_user: AuthUser,
     Query(params): Query<ListWorkspacesRequest>,
@@ -253,6 +294,28 @@ pub async fn list_workspaces_handler(
     Ok(Json(ListWorkspacesResponse { workspaces }))
 }
 
+/// Handler pour récupérer un workspace par son ID.
+///
+/// # Endpoint
+///
+/// `GET /api/workspaces/{id}`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `id` - UUID du workspace
+///
+/// # Returns
+///
+/// Les informations du workspace si l'utilisateur en est le propriétaire.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - ID invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'est pas propriétaire du workspace
+/// * `404 Not Found` - Workspace introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_workspace_handler(
     auth_user: AuthUser,
     Path(id): Path<String>,
@@ -306,6 +369,31 @@ pub async fn get_workspace_handler(
     }))
 }
 
+/// Handler pour mettre à jour un workspace.
+///
+/// Permet de modifier le nom d'un workspace.
+///
+/// # Endpoint
+///
+/// `PUT /api/workspaces/{id}`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `id` - UUID du workspace à mettre à jour
+/// * `payload` - Nouveau nom du workspace
+///
+/// # Returns
+///
+/// Le workspace mis à jour.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - ID invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'est pas propriétaire
+/// * `404 Not Found` - Workspace introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn update_workspace_handler(
     auth_user: AuthUser,
     Path(id): Path<String>,
@@ -370,6 +458,30 @@ pub async fn update_workspace_handler(
     }))
 }
 
+/// Handler pour supprimer un workspace.
+///
+/// Supprime définitivement le workspace et tous ses membres (CASCADE).
+///
+/// # Endpoint
+///
+/// `DELETE /api/workspaces/{id}`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `id` - UUID du workspace à supprimer
+///
+/// # Returns
+///
+/// Message de confirmation de suppression.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - ID invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'est pas propriétaire
+/// * `404 Not Found` - Workspace introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn delete_workspace_handler(
     auth_user: AuthUser,
     Path(id): Path<String>,
@@ -425,6 +537,33 @@ pub async fn delete_workspace_handler(
     }))
 }
 
+/// Handler pour ajouter un membre à un workspace.
+///
+/// Ajoute un utilisateur au workspace avec un rôle spécifique (owner, admin, member).
+/// L'utilisateur peut être identifié par son ID ou son email.
+///
+/// # Endpoint
+///
+/// `POST /api/workspaces/{workspace_id}/members`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `workspace_id` - UUID du workspace
+/// * `payload` - Données du membre (user_id ou email, role)
+///
+/// # Returns
+///
+/// Les informations du membre ajouté.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - IDs invalides ou données manquantes
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas les droits (doit être owner ou admin)
+/// * `404 Not Found` - Workspace ou utilisateur introuvable
+/// * `409 Conflict` - L'utilisateur est déjà membre
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn add_workspace_member_handler(
     auth_user: AuthUser,
     Path(workspace_id): Path<String>,
@@ -568,6 +707,31 @@ pub async fn add_workspace_member_handler(
     Ok(Json(AddWorkspaceMemberResponse { member: resp }))
 }
 
+/// Handler pour retirer un membre d'un workspace.
+///
+/// Retire un utilisateur du workspace. Seuls les owners et admins peuvent retirer des membres.
+///
+/// # Endpoint
+///
+/// `DELETE /api/workspaces/{workspace_id}/members/{user_id}`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `workspace_id` - UUID du workspace
+/// * `user_id` - UUID de l'utilisateur à retirer
+///
+/// # Returns
+///
+/// Message de confirmation de suppression.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - IDs invalides
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas les droits ou tente de retirer le propriétaire
+/// * `404 Not Found` - Workspace ou membre introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn remove_workspace_member_handler(
     auth_user: AuthUser,
     Path((workspace_id, user_id)): Path<(String, String)>,
@@ -678,6 +842,30 @@ pub async fn remove_workspace_member_handler(
     }))
 }
 
+/// Handler pour lister les membres d'un workspace.
+///
+/// Retourne tous les membres d'un workspace avec leurs rôles.
+///
+/// # Endpoint
+///
+/// `GET /api/workspaces/{workspace_id}/members`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `workspace_id` - UUID du workspace
+///
+/// # Returns
+///
+/// Liste de tous les membres du workspace.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - workspace_id invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace
+/// * `404 Not Found` - Workspace introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn list_workspace_members_handler(
     auth_user: AuthUser,
     Path(workspace_id): Path<String>,

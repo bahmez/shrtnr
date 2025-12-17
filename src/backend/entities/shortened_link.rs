@@ -1,6 +1,15 @@
+//! Entity ShortenedLink pour la table `shortened_links`.
+//!
+//! Représente un lien raccourci avec son code court unique,
+//! l'URL originale, et les métadonnées associées.
+
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+/// Modèle de données pour un lien raccourci.
+///
+/// Contient toutes les informations d'un lien raccourci :
+/// code court unique, URL originale, workspace, dates, état actif/inactif.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "shortened_links")]
 pub struct Model {

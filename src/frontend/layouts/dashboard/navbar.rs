@@ -1,3 +1,11 @@
+//! Barre de navigation du dashboard.
+//!
+//! Fournit la navigation principale du dashboard avec :
+//! - Sélecteur de workspace
+//! - Liens de navigation (Links, Analytics, Settings)
+//! - Menu profil utilisateur avec déconnexion
+//! - Menu mobile responsive
+
 use crate::frontend::{
     design_system::{Badge, BadgeVariant, Button, ButtonSize, ButtonVariant, Text, TextTone},
     state::{use_auth_store, use_workspace_store},
@@ -11,8 +19,21 @@ use leptos_router::hooks::use_navigate;
 #[cfg(feature = "hydrate")]
 use leptos_router::NavigateOptions;
 
+/// Liens de navigation principaux du dashboard.
 const NAV_LINKS: [(&str, &str); 3] = [("Links", "/links"), ("Analytics", "/analytics"), ("Settings", "/settings")];
 
+/// Barre de navigation du dashboard.
+///
+/// Affiche :
+/// - Le sélecteur de workspace avec la liste des workspaces disponibles
+/// - Les liens de navigation principaux (Links, Analytics, Settings)
+/// - Le menu profil avec les informations utilisateur et la déconnexion
+/// - Un menu mobile pour les petits écrans
+///
+/// # Arguments
+///
+/// * `on_open_settings` - Callback appelé pour ouvrir le modal de paramètres
+/// * `on_open_workspace_modal` - Callback appelé pour ouvrir le modal de création de workspace
 #[component]
 pub fn DashboardNavbar(
     on_open_settings: Callback<()>,

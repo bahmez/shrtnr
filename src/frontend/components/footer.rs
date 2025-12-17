@@ -1,6 +1,19 @@
+//! Composant Footer pour la page d'accueil.
+//!
+//! Affiche le pied de page avec les liens de navigation, informations légales,
+//! et liens vers les différentes sections du site.
+
 use crate::frontend::design_system::{Heading, HeadingLevel, Text, TextTone};
 use leptos::prelude::*;
 
+/// Composant Footer de l'application.
+///
+/// Affiche :
+/// - Description de l'application
+/// - Liens de navigation (Produit, Ressources, Entreprise)
+/// - Informations légales (copyright, conditions, confidentialité)
+///
+/// Utilisé principalement sur la landing page.
 #[component]
 pub fn Footer() -> impl IntoView {
     view! {

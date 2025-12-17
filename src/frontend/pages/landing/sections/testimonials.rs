@@ -1,8 +1,16 @@
+//! Section témoignages de la landing page.
+//!
+//! Affiche les témoignages de clients satisfaits.
+
 use crate::frontend::design_system::{
     Badge, BadgeVariant, Card, CardBody, CardHeader, Chip, Heading, HeadingLevel, Text, TextTone,
 };
 use leptos::prelude::*;
 
+/// Section témoignages de la landing page.
+///
+/// Affiche des témoignages de clients avec leurs résultats
+/// pour renforcer la crédibilité de la plateforme.
 #[component]
 pub fn TestimonialsSection() -> impl IntoView {
     struct Testimonial<'a> {

@@ -1,3 +1,7 @@
+//! Modal de paramètres du profil utilisateur.
+//!
+//! Permet aux utilisateurs de modifier leur nom et email.
+
 use crate::frontend::{
     design_system::{Button, ButtonSize, ButtonVariant, FormControl, InputField, Text, TextTone},
     state::use_auth_store,
@@ -7,6 +11,17 @@ use leptos::prelude::Effect;
 use leptos::task::spawn_local;
 use leptos::{ev, prelude::*};
 
+/// Modal pour modifier les paramètres du profil utilisateur.
+///
+/// Affiche un formulaire permettant de :
+/// - Modifier le nom d'affichage
+/// - Modifier l'adresse email
+/// - Sauvegarder les modifications via l'API
+/// - Afficher les erreurs ou messages de succès
+///
+/// # Arguments
+///
+/// * `open` - Signal contrôlant l'ouverture/fermeture du modal
 #[component]
 pub fn SettingsModal(open: RwSignal<bool>) -> impl IntoView {
     let auth_store = use_auth_store();

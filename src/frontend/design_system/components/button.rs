@@ -1,20 +1,33 @@
+//! Composant Button du design system.
+//!
+//! Fournit un composant bouton réutilisable avec différentes variantes et tailles.
+
 use leptos::ev;
 use leptos::prelude::*;
 
+/// Variantes de style pour le composant Button.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum ButtonVariant {
+    /// Style principal (brand color)
     #[default]
     Primary,
+    /// Style secondaire (surface forte)
     Secondary,
+    /// Style avec bordure (outline)
     Outline,
+    /// Style minimal (ghost, transparent)
     Ghost,
 }
 
+/// Tailles disponibles pour le composant Button.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum ButtonSize {
+    /// Taille moyenne (par défaut)
     #[default]
     Md,
+    /// Taille petite
     Sm,
+    /// Taille grande
     Lg,
 }
 
@@ -39,6 +52,33 @@ impl ButtonSize {
     }
 }
 
+/// Composant Button réutilisable du design system.
+///
+/// Bouton stylisé avec support de différentes variantes, tailles, et états.
+///
+/// # Props
+///
+/// * `variant` - Style du bouton (Primary, Secondary, Outline, Ghost)
+/// * `size` - Taille du bouton (Sm, Md, Lg)
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `disabled` - Désactive le bouton
+/// * `full_width` - Le bouton prend toute la largeur disponible
+/// * `on_click` - Callback appelé lors du clic
+/// * `children` - Contenu du bouton (texte, icônes, etc.)
+///
+/// # Exemple
+///
+/// ```rust,no_run
+/// use shrtnr::frontend::design_system::{Button, ButtonVariant, ButtonSize};
+///
+/// view! {
+///     <Button variant=ButtonVariant::Primary size=ButtonSize::Md on_click=move |_| {
+///         println!("Clicked!");
+///     }>
+///         "Cliquez-moi"
+///     </Button>
+/// }
+/// ```
 #[component]
 pub fn Button(
     #[prop(optional)] variant: ButtonVariant,

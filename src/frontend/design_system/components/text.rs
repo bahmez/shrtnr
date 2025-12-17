@@ -1,12 +1,22 @@
+//! Composant Text du design system.
+//!
+//! Fournit un composant de texte avec différents tons pour la hiérarchie visuelle.
+
 use leptos::prelude::*;
 
+/// Tons de texte disponibles pour la hiérarchie visuelle.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub enum TextTone {
+    /// Texte par défaut (opacité 90%)
     #[default]
     Default,
+    /// Texte atténué (opacité 70%)
     Muted,
+    /// Texte subtil (opacité 60%)
     Subtle,
+    /// Texte de succès (couleur success)
     Success,
+    /// Texte d'erreur (couleur danger)
     Danger,
 }
 
@@ -22,6 +32,15 @@ impl TextTone {
     }
 }
 
+/// Composant Text pour afficher du texte avec différents tons.
+///
+/// Utilisé pour créer une hiérarchie visuelle dans le texte.
+///
+/// # Props
+///
+/// * `tone` - Ton du texte (Default, Muted, Subtle, Success, Danger)
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `children` - Contenu textuel
 #[component]
 pub fn Text(
     #[prop(optional)] tone: TextTone,

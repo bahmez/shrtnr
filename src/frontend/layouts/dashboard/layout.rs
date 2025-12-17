@@ -1,3 +1,11 @@
+//! Layout principal du dashboard.
+//!
+//! Fournit la structure de base pour toutes les pages du dashboard avec :
+//! - Navigation en haut
+//! - Footer en bas
+//! - Modals pour les paramètres et workspaces
+//! - Protection d'authentification (redirection si non connecté)
+
 use super::{
     footer::DashboardFooter, navbar::DashboardNavbar, settings_modal::SettingsModal,
     workspace_modal::WorkspaceModal,
@@ -9,6 +17,18 @@ use leptos_router::hooks::{use_location, use_navigate};
 #[cfg(feature = "hydrate")]
 use leptos_router::NavigateOptions;
 
+/// Layout principal du dashboard.
+///
+/// Enveloppe toutes les pages du dashboard avec :
+/// - Une barre de navigation en haut
+/// - Un footer en bas
+/// - Des modals pour les paramètres et la création de workspaces
+/// - Une protection d'authentification (redirige vers /login si non connecté)
+/// - Un chargement automatique des workspaces de l'utilisateur
+///
+/// # Arguments
+///
+/// * `children` - Contenu de la page à afficher dans le layout
 #[component]
 pub fn DashboardLayout(children: ChildrenFn) -> impl IntoView {
     let auth_store = use_auth_store();

@@ -1,8 +1,16 @@
+//! Section call-to-action finale de la landing page.
+//!
+//! Section finale avec un appel à l'action pour inciter à l'inscription.
+
 use crate::frontend::design_system::{
     Badge, BadgeVariant, Button, ButtonSize, ButtonVariant, Heading, HeadingLevel, Text, TextTone,
 };
 use leptos::prelude::*;
 
+/// Section call-to-action finale de la landing page.
+///
+/// Affiche un message incitatif avec un bouton d'inscription
+/// pour convertir les visiteurs en utilisateurs.
 #[component]
 pub fn CtaSection() -> impl IntoView {
     view! {

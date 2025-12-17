@@ -1,3 +1,8 @@
+//! Module de gestion des liens frontend.
+//!
+//! Fournit la page de gestion des liens et les structures de données
+//! pour afficher et manipuler les liens raccourcis.
+
 mod page;
 #[cfg(feature = "hydrate")]
 mod client;
@@ -9,6 +14,7 @@ pub use client::{
     create_link, delete_link, fetch_links, update_link, LinkDetail, LinkListData,
 };
 
+/// Item de lien pour l'affichage dans la liste.
 #[derive(Clone, Debug)]
 pub struct LinkItem {
     pub id: String,

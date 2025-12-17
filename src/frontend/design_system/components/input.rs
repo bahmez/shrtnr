@@ -1,6 +1,22 @@
+//! Composants Input et FormControl du design system.
+//!
+//! Fournit des composants de formulaire réutilisables avec support de labels,
+//! hints, et messages d'erreur.
+
 use leptos::ev;
 use leptos::prelude::*;
 
+/// Composant wrapper pour les champs de formulaire.
+///
+/// Fournit un conteneur avec label, hint, et message d'erreur optionnels.
+///
+/// # Props
+///
+/// * `label` - Label du champ (optionnel)
+/// * `hint` - Texte d'aide (optionnel)
+/// * `error` - Message d'erreur (optionnel)
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `children` - Le champ de formulaire (InputField, etc.)
 #[component]
 pub fn FormControl(
     #[prop(optional, into)] label: Option<String>,
@@ -32,6 +48,21 @@ pub fn FormControl(
     }
 }
 
+/// Composant InputField pour les champs de saisie.
+///
+/// Champ de texte stylisé avec support de différents types (text, email, password, etc.)
+/// et gestion réactive de la valeur via signals.
+///
+/// # Props
+///
+/// * `id` - ID HTML du champ (optionnel)
+/// * `name` - Nom du champ pour les formulaires (optionnel)
+/// * `placeholder` - Texte de placeholder (optionnel)
+/// * `input_type` - Type d'input (text, email, password, etc., défaut: "text")
+/// * `value` - Signal pour la valeur du champ (optionnel, crée un signal interne si absent)
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `disabled` - Désactive le champ
+/// * `on_input` - Callback appelé lors de la saisie
 #[component]
 pub fn InputField(
     #[prop(optional, into)] id: Option<String>,

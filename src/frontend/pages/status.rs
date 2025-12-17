@@ -1,9 +1,17 @@
+//! Page de statut des services.
+//!
+//! Affiche l'état de tous les services de l'application (API, interface web, etc.).
+
 use crate::frontend::design_system::{
     Badge, BadgeVariant, Card, CardBody, Heading, HeadingLevel, Text, TextTone,
 };
 use crate::frontend::layouts::DashboardLayout;
 use leptos::prelude::*;
 
+/// Page de statut des services.
+///
+/// Affiche l'état opérationnel de tous les services de l'application
+/// (API, interface web, raccourcissement, redirections, base de données).
 #[component]
 pub fn StatusPage() -> impl IntoView {
     view! {
@@ -96,6 +104,13 @@ pub fn StatusPage() -> impl IntoView {
     }
 }
 
+/// Composant pour afficher le statut d'un service individuel.
+///
+/// # Arguments
+///
+/// * `name` - Nom du service
+/// * `status` - Statut du service ("operational", "degraded", "outage")
+/// * `description` - Description du statut
 #[component]
 fn ServiceStatus(
     name: &'static str,

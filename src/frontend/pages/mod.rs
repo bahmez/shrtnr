@@ -1,3 +1,14 @@
+//! Pages de l'application frontend.
+//!
+//! Ce module contient toutes les pages de l'application organisées par fonctionnalité :
+//! - [`landing`] : Page d'accueil marketing
+//! - [`auth`] : Pages d'authentification (login, register)
+//! - [`workspace`] : Gestion des workspaces
+//! - [`links`] : Gestion des liens raccourcis
+//! - [`analytics`] : Analytics et visualisations
+//! - [`settings`] : Paramètres utilisateur
+//! - Pages d'information : [`support`], [`status`], [`aide`]
+
 pub mod aide;
 pub mod analytics;
 pub mod auth;

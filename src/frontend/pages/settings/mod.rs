@@ -1,3 +1,7 @@
+//! Module de paramètres frontend.
+//!
+//! Fournit la page de paramètres pour gérer les workspaces et leurs membres.
+
 mod page;
 #[cfg(feature = "hydrate")]
 mod client;

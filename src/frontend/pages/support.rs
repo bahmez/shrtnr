@@ -1,9 +1,17 @@
+//! Page de support.
+//!
+//! Permet aux utilisateurs de contacter l'équipe de support par email.
+
 use crate::frontend::design_system::{
     Button, ButtonSize, ButtonVariant, Card, CardBody, Heading, HeadingLevel, Text, TextTone,
 };
 use crate::frontend::layouts::DashboardLayout;
 use leptos::prelude::*;
 
+/// Page de support de l'application.
+///
+/// Affiche les informations de contact et permet d'envoyer un email
+/// directement à l'équipe de support.
 #[component]
 pub fn SupportPage() -> impl IntoView {
     view! {

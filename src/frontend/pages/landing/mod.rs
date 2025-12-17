@@ -1,3 +1,8 @@
+//! Page d'accueil (landing page) de l'application.
+//!
+//! Page marketing présentant les fonctionnalités, avantages et tarifs
+//! de la plateforme shrtnr.
+
 mod sections;
 
 use crate::frontend::{
@@ -10,6 +15,16 @@ use sections::{
     WorkflowSection,
 };
 
+/// Page d'accueil de l'application.
+///
+/// Affiche une page marketing complète avec :
+/// - Section hero (titre principal et CTA)
+/// - Métriques et statistiques
+/// - Fonctionnalités
+/// - Workflow d'utilisation
+/// - Tarifs
+/// - Témoignages
+/// - Call-to-action final
 #[component]
 pub fn LandingPage() -> impl IntoView {
     view! {

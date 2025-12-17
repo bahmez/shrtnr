@@ -1,9 +1,17 @@
+//! Section tarifs de la landing page.
+//!
+//! Affiche les différents plans tarifaires disponibles.
+
 use crate::frontend::design_system::{
     Badge, BadgeVariant, Button, ButtonSize, ButtonVariant, Card, CardBody, CardFooter, CardHeader,
     Heading, HeadingLevel, Text, TextTone,
 };
 use leptos::prelude::*;
 
+/// Section tarifs de la landing page.
+///
+/// Affiche les différents plans tarifaires (Growth, Scale, Enterprise)
+/// avec leurs fonctionnalités et prix respectifs.
 #[component]
 pub fn PricingSection() -> impl IntoView {
     struct Plan<'a> {

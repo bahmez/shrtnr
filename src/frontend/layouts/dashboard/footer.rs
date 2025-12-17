@@ -1,6 +1,15 @@
+//! Pied de page du dashboard.
+//!
+//! Affiche les liens vers le support, le statut et l'aide.
+
 use crate::frontend::design_system::{Text, TextTone};
 use leptos::prelude::*;
 
+/// Pied de page du dashboard.
+///
+/// Affiche :
+/// - Un message descriptif
+/// - Des liens vers Support, Status et Aide
 #[component]
 pub fn DashboardFooter() -> impl IntoView {
     view! {

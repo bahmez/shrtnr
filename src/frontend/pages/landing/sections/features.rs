@@ -1,8 +1,16 @@
+//! Section des fonctionnalités de la landing page.
+//!
+//! Présente les principales fonctionnalités de la plateforme.
+
 use crate::frontend::design_system::{
     Badge, BadgeVariant, Card, CardBody, CardHeader, Heading, HeadingLevel, Text, TextTone,
 };
 use leptos::prelude::*;
 
+/// Section des fonctionnalités de la landing page.
+///
+/// Affiche les principales fonctionnalités de la plateforme
+/// (pilotage, analytics, automatisation) avec leurs avantages.
 #[component]
 pub fn FeaturesSection() -> impl IntoView {
     struct Feature<'a> {

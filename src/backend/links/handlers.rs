@@ -67,6 +67,30 @@ pub struct LinkListResponse {
     pub limit: u64,
 }
 
+/// Handler pour créer un nouveau lien raccourci.
+///
+/// Génère un code court unique (ou utilise un code personnalisé si fourni)
+/// et crée un lien raccourci associé à un workspace.
+///
+/// # Endpoint
+///
+/// `POST /api/links`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `payload` - Données du lien à créer
+///
+/// # Returns
+///
+/// Le lien créé avec son code court et son URL raccourcie.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - URL invalide, code personnalisé invalide, ou format de date d'expiration invalide
+/// * `401 Unauthorized` - Token invalide (géré par AuthUser)
+/// * `409 Conflict` - Code personnalisé déjà utilisé
+/// * `500 Internal Server Error` - Erreur de base de données
 #[axum::debug_handler]
 pub async fn create_link_handler(
     auth_user: AuthUser,
@@ -148,6 +172,29 @@ pub async fn create_link_handler(
     Ok(Json(link_to_response(link)))
 }
 
+/// Handler pour lister les liens raccourcis avec pagination.
+///
+/// Retourne les liens de l'utilisateur authentifié, optionnellement filtrés
+/// par workspace.
+///
+/// # Endpoint
+///
+/// `GET /api/links?page=1&limit=20&workspace_id=...`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `params` - Paramètres de pagination et filtres (page, limit, workspace_id)
+///
+/// # Returns
+///
+/// Liste paginée des liens avec le total.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - Workspace ID invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn list_links_handler(
     auth_user: AuthUser,
     Query(params): Query<PaginationQuery>,
@@ -193,6 +240,28 @@ pub async fn list_links_handler(
     }))
 }
 
+/// Handler pour récupérer un lien raccourci par son ID.
+///
+/// # Endpoint
+///
+/// `GET /api/links/{id}`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `id` - UUID du lien à récupérer
+///
+/// # Returns
+///
+/// Les informations du lien si l'utilisateur en est le propriétaire.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - ID invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'est pas propriétaire du lien
+/// * `404 Not Found` - Lien introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_link_handler(
     auth_user: AuthUser,
     Path(id): Path<String>,
@@ -227,6 +296,31 @@ pub async fn get_link_handler(
     Ok(Json(link_to_response(link)))
 }
 
+/// Handler pour mettre à jour un lien raccourci.
+///
+/// Permet de modifier le titre, l'URL originale, ou l'état actif/inactif d'un lien.
+///
+/// # Endpoint
+///
+/// `PUT /api/links/{id}`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `id` - UUID du lien à mettre à jour
+/// * `payload` - Champs à mettre à jour (tous optionnels)
+///
+/// # Returns
+///
+/// Le lien mis à jour.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - ID invalide ou URL invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'est pas propriétaire du lien
+/// * `404 Not Found` - Lien introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn update_link_handler(
     auth_user: AuthUser,
     Path(id): Path<String>,
@@ -290,6 +384,30 @@ pub async fn update_link_handler(
     Ok(Json(link_to_response(link)))
 }
 
+/// Handler pour supprimer un lien raccourci.
+///
+/// Supprime définitivement le lien de la base de données et invalide le cache.
+///
+/// # Endpoint
+///
+/// `DELETE /api/links/{id}`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `id` - UUID du lien à supprimer
+///
+/// # Returns
+///
+/// Message de confirmation de suppression.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - ID invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'est pas propriétaire du lien
+/// * `404 Not Found` - Lien introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn delete_link_handler(
     auth_user: AuthUser,
     Path(id): Path<String>,
@@ -337,6 +455,31 @@ pub async fn delete_link_handler(
     Ok(Json(ApiMessage::new("Link deleted successfully")))
 }
 
+/// Handler pour rediriger vers l'URL originale via le code court.
+///
+/// Ce handler est appelé lorsqu'un utilisateur accède à un lien raccourci.
+/// Il enregistre les statistiques de clic (IP, user-agent, referer) et
+/// redirige vers l'URL originale.
+///
+/// # Endpoint
+///
+/// `GET /{short_code}`
+///
+/// # Arguments
+///
+/// * `state` - État de l'application
+/// * `short_code` - Code court du lien
+/// * `addr` - Adresse IP du client (pour les statistiques)
+/// * `headers` - Headers HTTP (pour user-agent et referer)
+///
+/// # Returns
+///
+/// Redirection HTTP 302 vers l'URL originale.
+///
+/// # Errors
+///
+/// * `404 Not Found` - Code court introuvable ou lien expiré/inactif
+/// * `500 Internal Server Error` - Erreur de base de données ou de tracking
 pub async fn redirect_handler(
     Extension(state): Extension<AppState>,
     Path(short_code): Path<String>,

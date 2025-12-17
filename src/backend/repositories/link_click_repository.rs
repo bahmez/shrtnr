@@ -1,10 +1,31 @@
+//! Repository pour la gestion des statistiques de clics.
+//!
+//! Fournit des méthodes pour enregistrer et interroger les clics sur les liens.
+
 use crate::backend::entities::link_click::{self, Entity as LinkClick};
 use sea_orm::*;
 use uuid::Uuid;
 
+/// Repository pour les opérations sur les clics de liens.
 pub struct LinkClickRepository;
 
 impl LinkClickRepository {
+    /// Enregistre un nouveau clic sur un lien.
+    ///
+    /// # Arguments
+    ///
+    /// * `db` - Connexion à la base de données
+    /// * `link_id` - UUID du lien cliqué
+    /// * `ip_address` - Adresse IP du client (optionnel)
+    /// * `user_agent` - User-agent du navigateur (optionnel)
+    /// * `referer` - URL de référence (optionnel)
+    /// * `country` - Pays du client (optionnel, depuis géolocalisation)
+    /// * `city` - Ville du client (optionnel, depuis géolocalisation)
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(link_click::Model)` - Le clic enregistré avec son ID généré
+    /// * `Err(DbErr)` - En cas d'erreur
     pub async fn create(
         db: &DatabaseConnection,
         link_id: Uuid,
@@ -28,6 +49,21 @@ impl LinkClickRepository {
         click.insert(db).await
     }
 
+    /// Liste les clics d'un lien avec pagination.
+    ///
+    /// Les clics sont triés par date décroissante (plus récents en premier).
+    ///
+    /// # Arguments
+    ///
+    /// * `db` - Connexion à la base de données
+    /// * `link_id` - UUID du lien
+    /// * `limit` - Nombre maximum de clics à retourner
+    /// * `offset` - Nombre de clics à ignorer (pour la pagination)
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(Vec<link_click::Model>)` - Liste des clics
+    /// * `Err(DbErr)` - En cas d'erreur
     pub async fn find_by_link(
         db: &DatabaseConnection,
         link_id: Uuid,
@@ -43,6 +79,17 @@ impl LinkClickRepository {
             .await
     }
 
+    /// Compte le nombre total de clics pour un lien.
+    ///
+    /// # Arguments
+    ///
+    /// * `db` - Connexion à la base de données
+    /// * `link_id` - UUID du lien
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(u64)` - Nombre total de clics
+    /// * `Err(DbErr)` - En cas d'erreur
     pub async fn count_by_link(db: &DatabaseConnection, link_id: Uuid) -> Result<u64, DbErr> {
         LinkClick::find()
             .filter(link_click::Column::LinkId.eq(link_id))
@@ -50,6 +97,19 @@ impl LinkClickRepository {
             .await
     }
 
+    /// Supprime tous les clics d'un lien.
+    ///
+    /// Utilisé lors de la suppression d'un lien pour nettoyer les statistiques.
+    ///
+    /// # Arguments
+    ///
+    /// * `db` - Connexion à la base de données
+    /// * `link_id` - UUID du lien
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(DeleteResult)` - Résultat de la suppression
+    /// * `Err(DbErr)` - En cas d'erreur
     pub async fn delete_by_link(
         db: &DatabaseConnection,
         link_id: Uuid,

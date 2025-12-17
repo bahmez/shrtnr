@@ -1,6 +1,15 @@
+//! Entity User pour la table `users`.
+//!
+//! Représente un utilisateur de l'application avec ses informations
+//! d'authentification et de profil.
+
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+/// Modèle de données pour un utilisateur.
+///
+/// Contient les informations d'authentification (email, password_hash)
+/// et de profil (name) de l'utilisateur.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "users")]
 pub struct Model {

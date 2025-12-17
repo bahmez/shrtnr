@@ -1,5 +1,15 @@
+//! Composants Card du design system.
+//!
+//! Fournit des composants de carte réutilisables avec header, body, et footer.
+
 use leptos::prelude::*;
 
+/// Composant Card pour afficher du contenu dans une carte stylisée.
+///
+/// # Props
+///
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `children` - Contenu de la carte
 #[component]
 pub fn Card(#[prop(optional, into)] class: Option<String>, children: Children) -> impl IntoView {
     let user_classes = class.unwrap_or_default();
@@ -18,6 +28,12 @@ pub fn Card(#[prop(optional, into)] class: Option<String>, children: Children) -
     }
 }
 
+/// Composant CardHeader pour l'en-tête d'une carte.
+///
+/// # Props
+///
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `children` - Contenu de l'en-tête
 #[component]
 pub fn CardHeader(
     #[prop(optional, into)] class: Option<String>,
@@ -34,6 +50,12 @@ pub fn CardHeader(
     view! { <header class=classes>{children()}</header> }
 }
 
+/// Composant CardBody pour le corps d'une carte.
+///
+/// # Props
+///
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `children` - Contenu du corps
 #[component]
 pub fn CardBody(
     #[prop(optional, into)] class: Option<String>,
@@ -50,6 +72,12 @@ pub fn CardBody(
     view! { <div class=classes>{children()}</div> }
 }
 
+/// Composant CardFooter pour le pied d'une carte.
+///
+/// # Props
+///
+/// * `class` - Classes CSS supplémentaires (optionnel)
+/// * `children` - Contenu du pied
 #[component]
 pub fn CardFooter(
     #[prop(optional, into)] class: Option<String>,

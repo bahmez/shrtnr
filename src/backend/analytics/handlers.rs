@@ -228,6 +228,30 @@ fn parse_referrer(referer: &str) -> String {
 
 // ===== Analytics Overview Handler =====
 
+/// Handler pour obtenir une vue d'ensemble des analytics d'un workspace.
+///
+/// Retourne les statistiques globales : total de clics, clics aujourd'hui,
+/// cette semaine, ce mois, et les top liens.
+///
+/// # Endpoint
+///
+/// `GET /api/analytics/overview?workspace_id=...&start_date=...&end_date=...`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `query` - Paramètres de requête (workspace_id requis, dates optionnelles)
+///
+/// # Returns
+///
+/// Vue d'ensemble des analytics avec statistiques agrégées.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - workspace_id invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_analytics_overview_handler(
     auth_user: AuthUser,
     Query(query): Query<AnalyticsQuery>,
@@ -336,6 +360,30 @@ pub async fn get_analytics_overview_handler(
 
 // ===== Clicks by Date Handler =====
 
+/// Handler pour obtenir les clics agrégés par date.
+///
+/// Retourne le nombre de clics par jour pour un workspace, avec filtres optionnels
+/// par date de début et de fin.
+///
+/// # Endpoint
+///
+/// `GET /api/analytics/clicks-by-date?workspace_id=...&start_date=...&end_date=...`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `query` - Paramètres de requête (workspace_id requis, dates optionnelles au format YYYY-MM-DD)
+///
+/// # Returns
+///
+/// Liste des clics agrégés par date, triée chronologiquement.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - workspace_id invalide ou format de date invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_clicks_by_date_handler(
     auth_user: AuthUser,
     Query(query): Query<AnalyticsQuery>,
@@ -416,6 +464,30 @@ pub async fn get_clicks_by_date_handler(
 
 // ===== Geographic Breakdown Handler =====
 
+/// Handler pour obtenir le breakdown géographique des clics.
+///
+/// Retourne les statistiques de clics par pays et par ville pour un workspace.
+/// Les résultats sont triés par nombre de clics décroissant et limités aux top 10.
+///
+/// # Endpoint
+///
+/// `GET /api/analytics/geographic?workspace_id=...&start_date=...&end_date=...`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `query` - Paramètres de requête (workspace_id requis, dates optionnelles)
+///
+/// # Returns
+///
+/// Breakdown géographique avec top 10 pays et top 10 villes, avec pourcentages.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - workspace_id invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_geographic_breakdown_handler(
     auth_user: AuthUser,
     Query(query): Query<AnalyticsQuery>,
@@ -507,6 +579,30 @@ pub async fn get_geographic_breakdown_handler(
 
 // ===== Referrer Breakdown Handler =====
 
+/// Handler pour obtenir le breakdown par referrer (sources de trafic).
+///
+/// Analyse les headers HTTP "Referer" pour identifier les sources de trafic
+/// (moteurs de recherche, réseaux sociaux, sites directs, etc.).
+///
+/// # Endpoint
+///
+/// `GET /api/analytics/referrers?workspace_id=...&start_date=...&end_date=...`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `query` - Paramètres de requête (workspace_id requis, dates optionnelles)
+///
+/// # Returns
+///
+/// Breakdown par referrer avec top 10 sources, triées par nombre de clics.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - workspace_id invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_referrer_breakdown_handler(
     auth_user: AuthUser,
     Query(query): Query<AnalyticsQuery>,
@@ -578,6 +674,30 @@ pub async fn get_referrer_breakdown_handler(
 
 // ===== Device Breakdown Handler =====
 
+/// Handler pour obtenir le breakdown par device et navigateur.
+///
+/// Analyse les user-agents pour identifier les navigateurs et types d'appareils
+/// (mobile, desktop, tablet) utilisés pour cliquer sur les liens.
+///
+/// # Endpoint
+///
+/// `GET /api/analytics/devices?workspace_id=...&start_date=...&end_date=...`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `query` - Paramètres de requête (workspace_id requis, dates optionnelles)
+///
+/// # Returns
+///
+/// Breakdown par navigateur et par type d'appareil, triés par nombre de clics.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - workspace_id invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_device_breakdown_handler(
     auth_user: AuthUser,
     Query(query): Query<AnalyticsQuery>,
@@ -664,6 +784,32 @@ pub async fn get_device_breakdown_handler(
 
 // ===== Link Detailed Analytics Handler =====
 
+/// Handler pour obtenir les analytics détaillés d'un lien spécifique.
+///
+/// Retourne une vue complète des analytics pour un lien : clics par date,
+/// breakdown géographique, par device, et par referrer.
+///
+/// # Endpoint
+///
+/// `GET /api/analytics/links/{link_id}?start_date=...&end_date=...`
+///
+/// # Arguments
+///
+/// * `auth_user` - Utilisateur authentifié
+/// * `link_id` - UUID du lien
+/// * `query` - Paramètres de filtrage par date (optionnels)
+///
+/// # Returns
+///
+/// Analytics détaillés complets du lien.
+///
+/// # Errors
+///
+/// * `400 Bad Request` - link_id invalide
+/// * `401 Unauthorized` - Token invalide
+/// * `403 Forbidden` - L'utilisateur n'a pas accès au workspace du lien
+/// * `404 Not Found` - Lien introuvable
+/// * `500 Internal Server Error` - Erreur de base de données
 pub async fn get_link_detailed_analytics_handler(
     auth_user: AuthUser,
     Path(link_id): Path<String>,

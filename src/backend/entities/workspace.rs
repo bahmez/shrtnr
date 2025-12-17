@@ -1,6 +1,15 @@
+//! Entity Workspace pour la table `workspaces`.
+//!
+//! Représente un espace de travail collaboratif où les utilisateurs
+//! peuvent créer et gérer des liens raccourcis ensemble.
+
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+/// Modèle de données pour un workspace.
+///
+/// Un workspace est un espace de travail collaboratif qui permet
+/// à plusieurs utilisateurs de gérer des liens raccourcis ensemble.
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "workspaces")]
 pub struct Model {

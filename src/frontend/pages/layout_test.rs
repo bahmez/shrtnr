@@ -1,3 +1,8 @@
+//! Page de test du layout.
+//!
+//! Page utilisée pour tester et visualiser le layout du dashboard
+//! avec différents composants et sections.
+
 use crate::frontend::{
     design_system::{
         Badge, BadgeVariant, Card, CardBody, CardHeader, Heading, HeadingLevel, Text, TextTone,
@@ -6,6 +11,10 @@ use crate::frontend::{
 };
 use leptos::prelude::*;
 
+/// Page de test du layout du dashboard.
+///
+/// Affiche différents composants et sections pour tester
+/// l'apparence et le comportement du layout.
 #[component]
 pub fn LayoutTestPage() -> impl IntoView {
     let highlights = [

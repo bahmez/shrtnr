@@ -1,6 +1,17 @@
+//! Entity LinkClick pour la table `link_clicks`.
+//!
+//! Représente un clic sur un lien raccourci avec toutes les métadonnées
+//! collectées (IP, user-agent, referer, géolocalisation).
+
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
+/// Modèle de données pour un clic sur un lien.
+///
+/// Enregistre chaque clic sur un lien raccourci avec :
+/// - Timestamp du clic
+/// - Informations du client (IP, user-agent, referer)
+/// - Géolocalisation (pays, ville) si disponible
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize)]
 #[sea_orm(table_name = "link_clicks")]
 pub struct Model {
